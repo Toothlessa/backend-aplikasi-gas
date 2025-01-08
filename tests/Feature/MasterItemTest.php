@@ -19,7 +19,7 @@ class MasterItemTest extends TestCase
 
         $this->post('/api/masteritems', [
             'item_name' => 'Gas LPG 3 Kg',
-            'item_code' => 'G01',
+            // 'item_code' => 'A01',
             'category' => 'Bahan Pokok',
             'cost_of_goods_sold' => 16000,
             'selling_price' => 19000,
@@ -30,7 +30,7 @@ class MasterItemTest extends TestCase
         ->assertJson([
             "data" => [
             'item_name' => 'Gas LPG 3 Kg',
-            'item_code' => 'G01',
+            'item_code' => 'BP01',
             'category' => 'Bahan Pokok',
             'cost_of_goods_sold' => 16000,
             'selling_price' => 19000,
@@ -404,6 +404,31 @@ class MasterItemTest extends TestCase
         self::assertEquals(5, count($response['data']));
         self::assertEquals(20, $response['meta']['total']);
         self::assertEquals(2, $response['meta']['current_page']);
+    }
+
+    public function generateItemCodeSuccess()
+    {
+        $this->seed([UserSeeder::class]);
+        $this->testCreateSuccess();
+
+        $this->post('/api/masteritems', [
+            'item_name' => 'Gas LPG 12 Kg',
+            'category' => 'Bahan Pokok',
+            'cost_of_goods_sold' => 205000,
+            'selling_price' => 215000,
+        ],
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(201)
+        ->assertJson([
+            "data" => [
+            'item_name' => 'Gas LPG 12 Kg',
+            'item_code' => 'BP02',
+            'category' => 'Bahan Pokok',
+            'cost_of_goods_sold' => 205000,
+            'selling_price' => 215000,
+            ]
+        ]);
     }
 }
     

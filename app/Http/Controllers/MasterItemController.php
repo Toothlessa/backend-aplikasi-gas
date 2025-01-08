@@ -57,15 +57,33 @@ class MasterItemController extends Controller
         }
     } 
 
+    public function generateItemCodeSeq(string $itemCategory): string
+    {
+        $lastSeq = MasterItem::where("category", $itemCategory)->orderByDesc("category")->first();
+
+        if(isset($lastSeq['item_code'])){
+            $itemCode = $lastSeq['$itemCode'] + 1;
+        }
+
+        if($itemCategory == "Bahan Pokok")
+        {
+            $itemCode = "BP01";
+        }
+
+        return $itemCode;
+    }
+
     public function create(MasterItemCreateRequest $request): JsonResponse
     {
         $user = Auth::user();
         $data = $request->validated();
 
         $this->checkItemExists($data['item_name']);
-        $this->checkItemCodeExists($data['item_code']);
+        // $this->checkItemCodeExists($data['item_code']);
+        $getItemCode = $this->generateItemCodeSeq($data['category']);
 
         $masterItem = new MasterItem($data);
+        $masterItem->item_code = $getItemCode;
         $masterItem->created_by = $user->id;
         $masterItem->save();
 
