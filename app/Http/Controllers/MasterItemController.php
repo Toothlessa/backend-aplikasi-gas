@@ -56,17 +56,18 @@ class MasterItemController extends Controller
             ], 400));
         }
     } 
-
     public function generateItemCodeSeq(string $itemCategory): string
     {
-        $lastSeq = MasterItem::where("category", $itemCategory)->orderByDesc("category")->first();
+        $lastSeq = MasterItem::where("category", $itemCategory)->orderByDesc("id")->first();
 
         if(isset($lastSeq['item_code'])){
-            $itemCode = $lastSeq['$itemCode'] + 1;
-        }
+            $getPrefix = substr($lastSeq->item_code, 0, 2);
+            $getSubfix = sprintf('%02d', (int)substr($lastSeq->item_code, 2, 2) + 1);
+            
+        $itemCode = $getPrefix . $getSubfix;
 
-        if($itemCategory == "Bahan Pokok")
-        {
+        } elseif ($itemCategory == "Bahan Pokok"){
+            
             $itemCode = "BP01";
         }
 
@@ -97,6 +98,14 @@ class MasterItemController extends Controller
         return new MasterItemResource($masterItem);
     }
 
+    public function getAll(): MasterItemCollection
+    {
+        $user = Auth::user();
+        $masterItem = MasterItem::all();
+
+        return new MasterItemCollection($masterItem);
+    }
+
     public function update($id, MasterItemUpdateRequest $request): MasterItemResource
     {
         $user = Auth::user();
@@ -105,8 +114,8 @@ class MasterItemController extends Controller
 
         $masterItem->fill($data);
 
-        $this->checkItemExists($data['item_name']);
-        $this->checkItemCodeExists($data['item_code']);
+        // $this->checkItemExists($data['item_name']);
+        // $this->checkItemCodeExists($data['item_code']);
 
         $masterItem->updated_by = $user->id;
         $masterItem->save();

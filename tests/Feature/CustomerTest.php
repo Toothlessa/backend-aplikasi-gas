@@ -411,4 +411,16 @@ class CustomerTest extends TestCase
         self::assertEquals(20, $response['meta']['total']);
         self::assertEquals(2, $response['meta']['current_page']);    
     }
+
+    public function testGetAllSuccess()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/customers/all', [
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->Json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
 }

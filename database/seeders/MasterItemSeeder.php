@@ -20,7 +20,7 @@ class MasterItemSeeder extends Seeder
             'item_code' => 'test001',
             'category' => 'test',
             'cost_of_goods_sold' => 5000,
-            'selling_price' => 5000,
+            'selling_price' => 10000,
             'created_by' => $user->id,
         ]);
     }
