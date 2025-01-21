@@ -29,15 +29,15 @@ class User extends Model implements Authenticatable
         'country',
     ];
 
-    public function createdBy(): HasMany
-    {
-        return $this->hasMany(Customer::class,'created_by','id');
-    }
+    // public function createdBy(): HasMany
+    // {
+    //     return $this->hasMany(Customer::class,'created_by','id');
+    // }
 
-    public function updatedBy(): HasMany
-    {
-        return $this->hasMany(Customer::class,'update_by','id');
-    }
+    // public function updatedBy(): HasMany
+    // {
+    //     return $this->hasMany(Customer::class,'update_by','id');
+    // }
 
     public function getAuthIdentifierName()
     {

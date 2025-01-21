@@ -13,11 +13,11 @@ class MasterItemSearchSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 9; $i++) {
             MasterItem::create([
                 'item_name' => 'test ' .$i,
-                'item_code'=> 'A001' .$i,
-                'category'=> 'Makanan',
+                'item_code'=> 'BP0' .$i,
+                'category'=> 'Bahan Pokok',
                 'cost_of_goods_sold'=> $i. '0000',
                 'selling_price'=> $i. '5000',
             ]);

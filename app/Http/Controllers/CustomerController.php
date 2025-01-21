@@ -80,6 +80,14 @@ class CustomerController extends Controller
         return new CustomerResource($customer);
     }
 
+    public function getAll(): CustomerCollection
+    {
+        $user = Auth::user();
+        $customer = Customer::all();
+
+        return new CustomerCollection($customer);
+    }
+
 
     public function update($id, CustomerUpdateRequest $request): CustomerResource
     {
@@ -89,8 +97,8 @@ class CustomerController extends Controller
 
         $customer->fill($data);
 
-        $this->checkCustomerExists($data["customer_name"]);
-        $this->checkEmailExists($data["email"]);
+        // $this->checkCustomerExists($data["customer_name"]);
+        // $this->checkEmailExists($data["email"]);
 
         $customer->updated_by = $user->id;
         $customer->save();

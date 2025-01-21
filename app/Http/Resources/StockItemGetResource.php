@@ -5,24 +5,20 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class MasterItemResource extends JsonResource
+class StockItemGetResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
+        
         return [
-            'id' => $this->id,
+            // 'id' => $this->id,
+            // 'stock' => $this->stock,
             'item_name' => $this->item_name,
             'item_code' => $this->item_code,
             'category' => $this->category,
-            'cost_of_goods_sold' => $this->cost_of_goods_sold,
+            'cogs' => $this->cost_of_goods_sold,
             'selling_price' => $this->selling_price,
-            // 'stock_status' => $this->stock_status,
-            // 'item_status' => $this->item_status,
+            'total_stock' => $this->total_stock,
         ];
     }
 }
