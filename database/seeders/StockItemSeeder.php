@@ -15,7 +15,7 @@ class StockItemSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::where("username", 'test')->first();
+        $user = User::where("username", 'test0')->first();
         $masterItem = MasterItem::query()->limit(1)->first();
         
         StockItem::create([

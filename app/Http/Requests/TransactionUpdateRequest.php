@@ -17,11 +17,11 @@ class TransactionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_id'   => ['required'],
             'quantity'      => ['required'],
-            'amount'        => ['required'],
             'description'   => ['max:100'],
-            // 'customer_id'   => ['required'],
-            // 'updated_at'    => ['required'],
+            'amount'        => ['required', 'numeric'],
+            'total'         => ['required', 'numeric'],
 
         ];
     }

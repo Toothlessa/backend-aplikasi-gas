@@ -18,6 +18,7 @@ class TransactionResource extends JsonResource
         $customer = Customer::where("id", $this->customer_id)->first();
         return [
             'id' => $this->id,
+            'customer_id' => $this->customer_id,
             'trx_number' => $this->trx_number,
             'quantity' => $this->quantity,
             'amount' => $this->amount,

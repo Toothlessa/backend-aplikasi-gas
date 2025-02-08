@@ -7,6 +7,7 @@ use App\Http\Requests\MasterItemUpdateRequest;
 use App\Http\Resources\MasterItemCollection;
 use App\Http\Resources\MasterItemResource;
 use App\Models\MasterItem;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -101,7 +102,9 @@ class MasterItemController extends Controller
     public function getAll(): MasterItemCollection
     {
         $user = Auth::user();
-        $masterItem = MasterItem::all();
+        $masterItem = MasterItem::query()->orderByDesc('active_flag')
+                                         ->orderBy('item_name')
+                                         ->get();
 
         return new MasterItemCollection($masterItem);
     }
@@ -163,6 +166,23 @@ class MasterItemController extends Controller
         $masterItem = $masterItem->paginate(perPage: $size, page: $page);
 
         return new MasterItemCollection($masterItem);
+    }
+
+    public function inactiveItem($id): MasterItemResource {
+        $user = Auth::user();
+        $masterItem = $this->getItem($id);
+
+        if($masterItem->active_flag == 'Y') {
+            $masterItem->active_flag = 'N';
+        } else {
+            $masterItem->active_flag = 'Y';
+        }
+
+        $masterItem->inactive_date = Carbon::now();
+        $masterItem->updated_by = $user->id;
+        $masterItem->save();
+
+        return new MasterItemResource($masterItem);
     }
 
 }

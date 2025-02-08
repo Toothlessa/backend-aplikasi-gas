@@ -430,7 +430,7 @@ class MasterItemTest extends TestCase
         ]);
     }
 
-    public function testGetAllMasteItem()
+    public function testGetAllMasterItem()
     {
         $this->seed([UserSeeder::class, MasterItemSearchSeeder::class]);
 
@@ -438,6 +438,24 @@ class MasterItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->Json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
+
+    public function testInactiveItem()
+    {
+        $this->seed([UserSeeder::class, MasterItemSearchSeeder::class]);
+
+        $masterItem = MasterItem::query()->first();
+        $response = $this->patch('/api/masteritems/inactive/'.$masterItem->id,[], 
+[
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'active_flag' => 'N',
+            ]
+        ]);
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }

@@ -20,7 +20,7 @@ class TransactionCreateRequest extends FormRequest
     {
         return [
             'quantity'      => ['required', 'numeric'],
-            'description'   => ['max:100'],
+            'description'   => ['nullable', 'max:100'],
             'amount'        => ['required', 'numeric'],
             'total'         => ['required', 'numeric'],
         ];
