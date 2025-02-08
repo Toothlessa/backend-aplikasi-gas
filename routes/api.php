@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\AssetOwnerController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DebtController;
 use App\Http\Controllers\MasterItemController;
 use App\Http\Controllers\StockItemController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
+use App\Models\AssetOwner;
+use Carbon\Carbon;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +35,7 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     Route::get('/customers/{id}', [CustomerController::class, 'get'])->where('id', '[0-9]+');
     Route::put('/customers/{id}', [CustomerController::class,'update'])->where('id', '[0-9]+');
     Route::delete('/customers/{id}', [CustomerController::class, 'delete'])-> where('id','[0-9]+');
+    Route::patch('/customers/inactive/{id}', [CustomerController::class,'inactiveCustomer'])->where('id', '[0-9]+');
 
     /* Master Item Route */
     Route::post('/masteritems', [MasterItemController::class, 'create']);
@@ -38,14 +44,39 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     Route::get('/masteritems/{id}', [MasterItemController::class, 'get'])->where('id', '[0-9]+');
     Route::put('/masteritems/{id}', [MasterItemController::class, 'update'])->where('id','[0-9]+');
     Route::delete('/masteritems/{id}', [MasterItemController::class,  'delete'])->where('id','[0-9]+');
+    Route::patch('/masteritems/inactive/{id}', [MasterItemController::class,'inactiveItem'])->where('id', '[0-9]+');
 
     /* Input Stock Route */
     Route::post('/stockitems/{id}', [StockItemController::class, 'create'])->where('id', '[0-9]+');
     Route::put('/stockitems/{id}', [StockItemController::class, 'update'])->where('id', '[0-9]+');
-    Route::get('/stockitems/currentstock', [StockItemController::class, 'getCurrentStock']);
+    
+    // Route::middleware([ConvertEmptyStringsToNull::class])->group(function(){
+    Route::get('/stockitems/currentstock/{itemId?}', [StockItemController::class, 'getCurrentStock']);
+    // });
+        /* User Route */
+    Route::get('/stockitems/detailstock/{itemId}', [StockItemController::class, 'getDetailStock'])->where('itemId', '[0-9]+');
     
     /* Transaction Route */
     Route::post('/transactions/{itemId}/customer/{customerId}', [TransactionController::class, 'create']);
-    Route::get('/transactions/today', [TransactionController::class, 'getTodayTransaction']);
+    Route::get('/transactions/today/{date?}', [TransactionController::class, 'getTransaction'])->defaults('date', Carbon::today());
+    Route::get('/transactions/outstanding', [TransactionController::class, 'getOutstandingTransaction']);
+    /* Chart */
+    Route::get('/transactions/salesperweek', [TransactionController::class, 'getSalesPerWeek']);
+    Route::get('/transactions/topcustomer', [TransactionController::class, 'getTopCustomer']);
     Route::patch('/transactions/{id}', [TransactionController::class, 'update'])->where('id', '[0-9]+');
+
+    /* Debt Route */
+    Route::post('/debts/{customerId}', [DebtController::class, 'create'])->where('customerId', '[0-9]+');
+    Route::get('/debts/customer/{customerId}', [DebtController::class, 'getByCust'])->where('customerId', '[0-9]+');
+    Route::get('/debts/summary', [DebtController::class, 'getDebtSummary']);
+    Route::get('/debts/outstanding', [DebtController::class, 'getDebtOutstanding']);
+    Route::patch('/debts/{id}', [DebtController::class, 'update'])->where('id', '[0-9]+');
+
+    /* Asset Owner */
+    Route::post('/assetowners', [AssetOwnerController::class, 'create']);
+    Route::get('/assetowners/all', [AssetOwnerController::class, 'getAll']);
+    Route::get('/assetowners/{id}', [AssetOwnerController::class, 'get'])->where('id', '[0-9]+');
+    Route::patch('/assetowners/{id}', [AssetOwnerController::class,'update'])->where('id', '[0-9]+');
+    Route::delete('/assetowners/{id}', [AssetOwnerController::class, 'delete'])-> where('id','[0-9]+');
+    Route::patch('/assetowners/inactive/{id}', [AssetOwnerController::class,'inactiveOwner'])->where('id', '[0-9]+');
 });

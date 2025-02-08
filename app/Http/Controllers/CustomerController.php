@@ -7,6 +7,7 @@ use App\Http\Requests\CustomerUpdateRequest;
 use App\Http\Resources\CustomerCollection;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -35,11 +36,7 @@ class CustomerController extends Controller
     {
         if(Customer::where("customer_name", $customerName)->count()==1){
             throw new HttpResponseException(response([
-                "errors"=> [
-                    "customer_name" => [
-                        "Customer dengan nama tersebut sudah terdaftar"
-                    ]
-                ]
+                "errors" => "CUSTOMER_NAME_EXISTS"
             ], 400));
         }
     }
@@ -48,11 +45,16 @@ class CustomerController extends Controller
     {
         if(Customer::where("email", $email)->count() == 1){
             throw new HttpResponseException(response([
-                "errors" => [
-                    "email" => [
-                        "Email sudah terdaftar"
-                    ]
-                ]
+                "errors" => "EMAIL_EXISTS"
+            ], 400));
+        }
+    }
+
+    public function checkNikExists(string $nik)
+    {
+        if(Customer::where("nik", $nik)->count() == 1){
+            throw new HttpResponseException(response([
+                "errors" => "NIK_EXISTS"
             ], 400));
         }
     }
@@ -63,9 +65,19 @@ class CustomerController extends Controller
         $data = $request->validated();
         
         $this->checkCustomerExists($data["customer_name"]);
-        $this->checkEmailExists($data["email"]);
+
+        if(isset($data['email'])) {
+            $this->checkEmailExists($data["email"]);
+        }
 
         $customer = new Customer($data);
+
+        if(!isset($data['nik']) || $data['nik'] == 0) {
+            $customer->nik = mt_rand(100,999);
+        }
+
+        $this->checkNikExists($customer->nik);
+
         $customer->created_by = $user->id;
         $customer->save();
 
@@ -83,7 +95,9 @@ class CustomerController extends Controller
     public function getAll(): CustomerCollection
     {
         $user = Auth::user();
-        $customer = Customer::all();
+        $customer = Customer::query()->orderByDesc('active_flag')
+                                   ->orderBy('customer_name')
+                                   ->get();;
 
         return new CustomerCollection($customer);
     }
@@ -157,5 +171,22 @@ class CustomerController extends Controller
         $customer = $customer->paginate(perPage: $size, page: $page);
 
         return new CustomerCollection($customer);
+    }
+
+    public function inactiveCustomer($id): CustomerResource {
+        $user = Auth::user();
+        $customer = $this->getCustomer($id);
+
+        if($customer->active_flag == 'Y') {
+            $customer->active_flag = 'N';
+        } else {
+            $customer->active_flag = 'Y';
+        }
+
+        $customer->inactive_date = Carbon::now();
+        $customer->updated_by = $user->id;
+        $customer->save();
+
+        return new CustomerResource($customer);
     }
 }

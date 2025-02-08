@@ -15,6 +15,7 @@ class StockItem extends Model
     public $increamenting = true;
 
     protected $fillable = [
+        'item_id',
         'stock',
     ];
 

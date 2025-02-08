@@ -11,8 +11,7 @@ class StockItemGetResource extends JsonResource
     {
         
         return [
-            // 'id' => $this->id,
-            // 'stock' => $this->stock,
+            'item_id' =>$this->item_id,
             'item_name' => $this->item_name,
             'item_code' => $this->item_code,
             'category' => $this->category,

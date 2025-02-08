@@ -423,4 +423,21 @@ class CustomerTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
+
+    public function testInactiveCustomer()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $customer = Customer::query()->limit(1)->first();
+        $response = $this->patch('/api/customers/inactive/'.$customer->id, [],[
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'active_flag' => 'N',
+            ]
+        ]);
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
 }

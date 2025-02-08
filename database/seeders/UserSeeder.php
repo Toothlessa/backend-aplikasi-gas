@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'username' => 'test',
+            'username' => 'test0',
             'password' => Hash::make('test'),
             'fullname' => 'test',
             'token' => 'test',
@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'username' => 'test1',
+            'username' => 'test100',
             'password' => Hash::make('test'),
             'fullname' => 'test1',
             'token' => 'test1',

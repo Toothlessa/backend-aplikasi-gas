@@ -16,6 +16,7 @@ class Transaction extends Model
     public $increamenting = true;
 
     protected $fillable = [
+        'customer_id',
         'quantity',
         'description',
         'amount',

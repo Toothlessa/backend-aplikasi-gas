@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionCreateRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 use App\Http\Resources\TransactionCollection;
+use App\Http\Resources\TransactionGetOutstandingCollection;
 use App\Http\Resources\TransactionGetResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Customer;
@@ -12,6 +13,7 @@ use App\Models\MasterItem;
 use App\Models\StockItem;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 class TransactionController extends Controller
 {
 
-    public function getTransaction($id): Transaction
+    public function getTransactionById($id): Transaction
     {
         $transaction = Transaction::find($id);
         if(!$transaction){
@@ -46,8 +48,83 @@ class TransactionController extends Controller
         return $stockItem;
     }
 
-    public function generateTrxNumber($itemId)
-    {
+    public function getTransactionByDate($date){
+        $transaction = DB::table("transactions")
+            ->join("customers", "transactions.customer_id", 'customers.id')
+            ->select("customers.customer_name", "customers.nik", "transactions.id",
+                    "transactions.trx_number", "transactions.quantity", "transactions.amount",
+                    "transactions.total", "transactions.description", "transactions.item_id",
+                    "transactions.customer_id", "transactions.created_by", "transactions.created_at",)
+            ->whereDate("transactions.created_at", $date)
+            ->orderByDesc("transactions.created_at")
+            ->get();
+
+        if(!$transaction){
+            throw new HttpResponseException(response()->json([
+                "errors" => "NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+
+        return $transaction;
+    }
+
+    public function getDataSaleItem(){
+        
+        $transaction = DB::table('transactions')
+            ->selectraw("DAYNAME(created_at) as day, 
+                        MONTHNAME(created_at) as month, sum(quantity) as total")
+            // ->where("item_id", $itemId)
+            ->groupBy("day")
+            ->limit(7)
+            ->get();
+        
+        if(!$transaction){
+            throw new HttpResponseException(response()->json([
+                "errors" => "NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+
+        return $transaction;
+    }
+
+    public function getTopSalePerItem() {
+        $transaction = DB::table('transactions')
+            ->join("customers", "customers.id", "customer_id")
+            ->selectraw("customer_id, customer_name, sum(quantity) as total")
+            // ->where("item_id", $itemId)
+            ->groupBy("customer_id", "customer_name")
+            ->limit(7)
+            ->get();
+
+        if(!$transaction){
+            throw new HttpResponseException(response()->json([
+                "errors" => "NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+    
+        return $transaction;
+    }
+
+    public function queryGetOutstandingTransaction() {
+        $transaction = DB::table('transactions')
+            ->join("customers", "customers.id", "customer_id")
+            ->join("master_items", "master_items.id", "item_id")
+            ->selectraw("transactions.id, customer_name, item_name, description, quantity, amount, total, transactions.created_at")
+            ->whereNotIn("description", ["umum", "done kirim", "done titip"])
+            ->orderBy("customer_id")
+            ->orderBy("transactions.created_at")
+            ->get();
+
+        if(!$transaction){
+            throw new HttpResponseException(response()->json([
+                "errors" => "NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+    
+        return $transaction;
+    }
+
+    public function generateTrxNumber($itemId) {
         $lastSeq = Transaction::where("item_id", $itemId)->orderByDesc("id")->first();
 
         if(isset($lastSeq['trx_number']))
@@ -60,6 +137,7 @@ class TransactionController extends Controller
 
         return $trxNumber;
     }
+
     public function create(TransactionCreateRequest $request, $itemId, $customer_id): JsonResponse
     {
         $user = Auth::user();
@@ -75,7 +153,6 @@ class TransactionController extends Controller
         $transaction->customer_id = $customer_id;
         $transaction->created_by = $user->id;
         
-        // $stockItem = new StockItem();
         $stockItem = StockItem::where("item_id", $itemId)->orderByDesc("id")->first();
         
         DB::table("stock_items")->insert([
@@ -92,30 +169,10 @@ class TransactionController extends Controller
         return (new TransactionResource($transaction))->response()->setStatusCode(201);
     }
 
-    public function getTodayTransaction(): TransactionCollection
-    {
-        $user = Auth::user();
-        // $transaction = Transaction::with("customer.transaction")
-        //                             ->select("trx_number", "description", "customers.customer_name")
-        //                             ->whereDate('created_at', Carbon::today())
-        //                             ->get();
-        $transaction = DB::table("transactions")
-            ->join("customers", "transactions.customer_id", 'customers.id')
-            ->select("customers.customer_name", "customers.nik", "transactions.id",
-                    "transactions.trx_number", "transactions.quantity", "transactions.amount",
-                    "transactions.total", "transactions.description", "transactions.item_id",
-                    "transactions.customer_id", "transactions.created_by", "transactions.created_at",)
-            ->whereDate('transactions.created_at', Carbon::today())
-            // ->orderByDesc("transactions.created_at")
-            ->get();
-
-        return new TransactionCollection($transaction);
-    }
-
     public function update($id, TransactionUpdateRequest $request): TransactionResource
     {
         $user = Auth::user();
-        $transaction = $this->getTransaction($id);
+        $transaction = $this->getTransactionById($id);
         $data = $request->validated();
 
         $transaction->fill($data);
@@ -125,4 +182,51 @@ class TransactionController extends Controller
 
         return new TransactionResource($transaction);
     }
+
+    public function getTransaction($date): TransactionCollection{
+
+        $user = Auth::user();
+        $transaction = $this->getTransactionByDate($date);
+
+        return new TransactionCollection($transaction);
+    }
+
+    public function getOutstandingTransaction(): TransactionGetOutstandingCollection{
+
+        $user = Auth::user();
+        $transaction = $this->queryGetOutstandingTransaction();
+
+        return new TransactionGetOutstandingCollection($transaction);
+    }
+
+   public function getSalesPerWeek(): JsonResponse {
+
+    $user = Auth::user();
+    $transaction = $this->getDataSaleItem();
+
+    return response()->json($transaction);
+   }
+
+   public function getTopCustomer(): JsonResponse {
+
+    $user = Auth::user();
+    $transaction = $this->getTopSalePerItem();
+
+    return response()->json($transaction);
+   }
+
+   public function getDisplayStock($itemId) {
+    $user = Auth::user();
+
+    $runStock = StockItem::where('item_id', $itemId)->sum('stock')->get();
+    // $emptyGas = StockItem::select('560 - stock as Stock')
+    //                         ->where('item_id', $itemId)
+    //                         ->get();
+    // $yesterdayStock = StockItem::where('item_id', $itemId)
+    //                             ->where('created_ad', Carbon::yesterday())
+    //                             ->sum('stock')
+    //                             ->get();
+    return $runStock;
+
+   }
 }
