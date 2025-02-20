@@ -74,11 +74,8 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                'customer_name' => [
-                   'Customer dengan nama tersebut sudah terdaftar'
-                ],
-            ]]);
+            "errors" =>  'CUSTOMER_NAME_EXISTS',
+            ]);
     }
 
     public function testCreateEmailAlreadyExists()
@@ -95,11 +92,8 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                'email' => [
-                   "Email sudah terdaftar"
-                ],
-            ]]);
+            "errors" =>  'EMAIL_EXISTS',
+        ]);
     }
 
     public function testCreateUnauthorized()
@@ -150,7 +144,7 @@ class CustomerTest extends TestCase
         $user = User::where('username', 'test')->first();
         $customer = Customer::query()->limit(1)->first();
 
-        $this->get('/api/customers/' . ($customer->id + 1),[
+        $this->get('/api/customers/' . ($customer->id + 100),[
             'Authorization' => 'test'
         ])->assertStatus(404)
             ->assertJson([
@@ -187,7 +181,7 @@ class CustomerTest extends TestCase
         $customer = Customer::query()->limit(1)->first();
 
         $this->put('/api/customers/' .$customer->id, [
-            'customer_name' => 'Renan',
+            'customer_name' => 'Ijat',
             'nik' => '119011',
             'email' => 'muhrenan@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari II',
@@ -197,7 +191,7 @@ class CustomerTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'customer_name' => 'Renan',
+                'customer_name' => 'Ijat',
                 'nik' => '119011',
                 'email' => 'muhrenan@gmail.com',
                 'address' => 'Jl.Ledeng Sindang Sari II',
@@ -233,7 +227,7 @@ class CustomerTest extends TestCase
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
 
-        $customer = Customer::query()->limit(1)->first();
+        $customer = Customer::query()->first();
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'test',
@@ -244,11 +238,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                'customer_name' => [
-                   'Customer dengan nama tersebut sudah terdaftar'
-                ]
-            ]
+            "errors" => "CUSTOMER_NAME_EXISTS"
             ]);
     }
 
@@ -259,7 +249,7 @@ class CustomerTest extends TestCase
         $customer = Customer::query()->limit(1)->first();
 
         $this->put('/api/customers/' .$customer->id, [
-            'customer_name' => 'Renan',
+            'customer_name' => 'Judi',
             'nik' => '119011',
             'email' => 'test@gmail.com',
             'phone' => '0811111',
@@ -267,11 +257,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                'email' => [
-                   'Email sudah terdaftar'
-                ]
-            ]
+             "errors" => "EMAIL_EXISTS"
             ]);
     }
 
@@ -294,7 +280,7 @@ class CustomerTest extends TestCase
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
         $customer = Customer::query()->limit(1)->first();
 
-        $this->delete('/api/customers/' .($customer->id + 1), [],
+        $this->delete('/api/customers/' .($customer->id + 100), [],
         [
             'Authorization'=> 'test',
         ])->assertStatus(404)

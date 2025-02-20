@@ -14,7 +14,7 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::where('username', 'test0')->first();
+        $user = User::query()->first();
         Customer::create([
             'customer_name' => 'test',
             'nik' => '3271981923812912',
