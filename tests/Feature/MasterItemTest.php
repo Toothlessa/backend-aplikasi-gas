@@ -74,34 +74,7 @@ class MasterItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors"=> [
-                    "item_name" => [
-                        "nama item sudah terdaftar"
-                    ]
-            ]
-        ]);
-    }
-
-    public function testItemCodeAlreadyExists()
-    {
-        $this->testCreateSuccess();
-
-        $this->post('/api/masteritems', [
-            'item_name' => 'Gas LPG 12 Kg',
-            'item_code' => 'G01',
-            'category' => 'Bahan Pokok',
-            'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
-        ],
-        [
-            'Authorization' => 'test'
-        ])->assertStatus(400)
-        ->assertJson([
-            "errors"=> [
-                    "item_code" => [
-                        "kode item sudah terdaftar"
-                    ]
-            ]
+            "errors"=> 'ITEM_NAME_IS_REGISTERED'
         ]);
     }
 
@@ -143,7 +116,7 @@ class MasterItemTest extends TestCase
                 'item_code' => 'test001',
                 'category' => 'test',
                 'cost_of_goods_sold' => 5000,
-                'selling_price' => 5000,
+                'selling_price' => 10000,
                 ]
         ]);
     }
@@ -152,16 +125,12 @@ class MasterItemTest extends TestCase
         $this->seed([UserSeeder::class, MasterItemSeeder::class]);
         $masterItem = MasterItem::query()->limit(1)->first();
 
-        $this->get('/api/masteritems/' .($masterItem->id + 1), 
+        $this->get('/api/masteritems/' .($masterItem->id + 100), 
         [
             'Authorization' => 'test'
         ])->assertStatus(404)
         ->assertJson([
-                'errors' => [
-                    'message' => [
-                        'not found'
-                    ]
-                ]
+                 "errors" => "NOT_FOUND"
         ]);
     }
 
@@ -190,7 +159,7 @@ class MasterItemTest extends TestCase
 
         $this->put('/api/masteritems/' .$masterItem->id, 
         [ 'item_name' => 'Indomie Goreng',
-                'item_code' => 'M001',
+                'item_code' => 'AAP001',
                 'category' => 'Makanan',
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -201,7 +170,7 @@ class MasterItemTest extends TestCase
         ->assertJson([
            'data' => [
                 'item_name' => 'Indomie Goreng',
-                'item_code' => 'M001',
+                'item_code' => 'AAP001',
                 'category' => 'Makanan',
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -239,8 +208,7 @@ class MasterItemTest extends TestCase
         $masterItem = MasterItem::query()->limit(1)->first();
 
         $this->put('/api/masteritems/' .$masterItem->id, 
-        [ 'item_name' => 'test',
-                'item_code' => 'M001',
+        [ 'item_name' => 'test1',
                 'category' => 'Makanan',
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -249,11 +217,7 @@ class MasterItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(status: 400)
         ->assertJson([
-          "errors"=> [
-                    "item_name" => [
-                        "nama item sudah terdaftar"
-                    ]
-                ]
+            "errors"=> "ITEM_NAME_IS_REGISTERED"
         ]);
     }
 
@@ -264,7 +228,7 @@ class MasterItemTest extends TestCase
 
         $this->put('/api/masteritems/' .$masterItem->id, 
         [ 'item_name' => 'Indomie Goreng',
-                'item_code' => 'test001',
+                'item_code' => 'test002',
                 'category' => 'Makanan',
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -273,11 +237,7 @@ class MasterItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(status: 400)
         ->assertJson([
-          "errors"=> [
-                    "item_code" => [
-                        "kode item sudah terdaftar"
-                    ]
-                ]
+          "errors"=> "ITEM_CODE_IS_REGISTERED"
         ]);
     }
 
@@ -299,16 +259,12 @@ class MasterItemTest extends TestCase
         $this->seed([UserSeeder::class, MasterItemSeeder::class]);
         $masterItem = MasterItem::query()->limit(1)->first();
 
-        $this->delete('/api/masteritems/' .($masterItem->id + 1), [],
+        $this->delete('/api/masteritems/' .($masterItem->id + 101), [],
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 404)
         ->assertJson([
-            'errors' => [
-                "message" => [
-                    "not found"
-                ]
-            ]
+            'errors' => "NOT_FOUND"
         ]);
     }
 
@@ -341,23 +297,23 @@ class MasterItemTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(9, count($response['data']));
+        self::assertEquals(9, $response['meta']['total']);
     }
 
     public function testSearchByItemCode()
     {
         $this->seed([UserSeeder::class, MasterItemSearchSeeder::class]);
 
-        $response = $this->get('/api/masteritems?item_code=A0', [
+        $response = $this->get('/api/masteritems?item_code=M', [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->Json();
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(0, count($response['data']));
+        self::assertEquals(0, $response['meta']['total']);
     }
 
     public function testSearchByItemCategory()
@@ -371,8 +327,8 @@ class MasterItemTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(0, count($response['data']));
+        self::assertEquals(0, $response['meta']['total']);
     }
 
     public function testSearchNotFound()

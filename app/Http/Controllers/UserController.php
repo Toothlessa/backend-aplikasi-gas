@@ -107,7 +107,6 @@ class UserController extends Controller
             $user->email = $data['email'];
         }
 
-        
         if(isset($data['phone'])){
             $user->phone = $data['phone'];
         }

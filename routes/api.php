@@ -47,11 +47,7 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     /* Input Stock Route */
     Route::post('/stockitems/{id}', [StockItemController::class, 'create'])->where('id', '[0-9]+');
     Route::put('/stockitems/{id}', [StockItemController::class, 'update'])->where('id', '[0-9]+');
-    
-    // Route::middleware([ConvertEmptyStringsToNull::class])->group(function(){
     Route::get('/stockitems/currentstock/{itemId?}', [StockItemController::class, 'getCurrentStock']);
-    // });
-        /* User Route */
     Route::get('/stockitems/detailstock/{itemId}', [StockItemController::class, 'getDetailStock'])->where('itemId', '[0-9]+');
     
     /* Transaction Route */

@@ -21,11 +21,7 @@ class MasterItemController extends Controller
         $masterItem = MasterItem::find($id);
         if(!$masterItem){
             throw new HttpResponseException(response()->json([
-                "errors" => [
-                    'message' => [
-                        'not found'
-                    ]
-                ]
+                "errors" => "NOT_FOUND"
             ])->setStatusCode(404));
         }
 
@@ -36,11 +32,7 @@ class MasterItemController extends Controller
     {
         if(MasterItem::where("item_name", $itemName)->count()==1){
             throw new HttpResponseException(response([
-                "errors"=> [
-                    "item_name" => [
-                        "nama item sudah terdaftar"
-                    ]
-                ]
+                "errors"=> "ITEM_NAME_IS_REGISTERED"
             ], 400));
         }
     } 
@@ -49,11 +41,7 @@ class MasterItemController extends Controller
     {
         if(MasterItem::where("item_code", $itemCode)->count()==1){
             throw new HttpResponseException(response([
-                "errors"=> [
-                    "item_code" => [
-                        "kode item sudah terdaftar"
-                    ]
-                ]
+                "errors"=> "ITEM_CODE_IS_REGISTERED"
             ], 400));
         }
     } 
@@ -81,7 +69,6 @@ class MasterItemController extends Controller
         $data = $request->validated();
 
         $this->checkItemExists($data['item_name']);
-        // $this->checkItemCodeExists($data['item_code']);
         $getItemCode = $this->generateItemCodeSeq($data['category']);
 
         $masterItem = new MasterItem($data);
@@ -114,11 +101,20 @@ class MasterItemController extends Controller
         $user = Auth::user();
         $masterItem = $this->getItem($id);
         $data = $request->validated();
+        
+        if($data['item_name'] != $masterItem->item_name) {
+            $this->checkItemExists($data['item_name']);
+        }
+
+        if($data['item_name'] != $masterItem->item_name) {
+            $this->checkItemExists($data['item_name']);
+        }
+
+        if($data['item_code'] != $masterItem->item_code) {
+            $this->checkItemCodeExists($data['item_code']);
+        }
 
         $masterItem->fill($data);
-
-        // $this->checkItemExists($data['item_name']);
-        // $this->checkItemCodeExists($data['item_code']);
 
         $masterItem->updated_by = $user->id;
         $masterItem->save();
