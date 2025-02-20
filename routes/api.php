@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetOwnerController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DebtController;
@@ -8,10 +9,7 @@ use App\Http\Controllers\StockItemController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
-use App\Models\AssetOwner;
 use Carbon\Carbon;
-use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/user', function (Request $request) {
@@ -79,4 +77,10 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     Route::patch('/assetowners/{id}', [AssetOwnerController::class,'update'])->where('id', '[0-9]+');
     Route::delete('/assetowners/{id}', [AssetOwnerController::class, 'delete'])-> where('id','[0-9]+');
     Route::patch('/assetowners/inactive/{id}', [AssetOwnerController::class,'inactiveOwner'])->where('id', '[0-9]+');
+
+    /* Asset */
+    Route::post('/assets', [AssetController::class, 'create']);
+    Route::get('/assets/summary', [AssetController::class, 'getSumAssetOwner']);
+    Route::get('/assets/detail/{ownerId}', [AssetController::class, 'getDetailAsset'])->where('ownerId', '[0-9]+');
+    Route::patch('/assets/{id}', [AssetController::class,'update'])->where('id', '[0-9]+');
 });

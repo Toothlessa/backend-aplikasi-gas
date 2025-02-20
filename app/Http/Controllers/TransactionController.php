@@ -224,7 +224,7 @@ class TransactionController extends Controller
     //                         ->get();
     // $yesterdayStock = StockItem::where('item_id', $itemId)
     //                             ->where('created_ad', Carbon::yesterday())
-    //                             ->sum('stock')
+    //                             ->sum('stock')L
     //                             ->get();
     return $runStock;
 

@@ -61,7 +61,11 @@ class AssetOwnerController extends Controller
     public function getAll(): AssetOwnerGetAllCollection
     {
         $user = Auth::user();
-        $assetOwner = AssetOwner::all();
+        $assetOwner = AssetOwner::query()
+                                ->where('active_flag', 'Y')
+                                ->orderByDesc('active_flag')
+                                ->orderBy('name')
+                                ->get();
 
         return new AssetOwnerGetAllCollection($assetOwner);
     }

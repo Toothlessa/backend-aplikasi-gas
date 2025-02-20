@@ -86,7 +86,9 @@ class UserController extends Controller
         $user = Auth::user();
 
         if(isset($data['username'])){
-           // $this->checkUsernameExists($data['username']);
+            if($data['username'] != $user->username){
+                $this->checkUsernameExists($data['username']);
+            }
             $user->username = $data['username'];    
         }
 
@@ -99,7 +101,9 @@ class UserController extends Controller
         }
 
         if(isset($data['email'])){
-          //  $this->checkEmailExists($data["email"]);
+            if($data['email'] != $user->email){
+                $this->checkEmailExists($data['email']);
+            }
             $user->email = $data['email'];
         }
 

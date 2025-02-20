@@ -109,10 +109,15 @@ class CustomerController extends Controller
         $customer = $this->getCustomer($id);
         $data = $request->validated();
 
-        $customer->fill($data);
+        if(isset($data['customer_name'])) {
+            $this->checkCustomerExists($data['customer_name']);
+        }
 
-        // $this->checkCustomerExists($data["customer_name"]);
-        // $this->checkEmailExists($data["email"]);
+        if(isset($data['email'])) {
+            $this->checkEmailExists($data['email']);
+        }
+
+        $customer->fill($data);
 
         $customer->updated_by = $user->id;
         $customer->save();

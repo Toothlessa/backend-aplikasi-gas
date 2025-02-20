@@ -18,13 +18,13 @@ abstract class TestCase extends BaseTestCase
         DB::delete("delete from customers");
         DB::delete("delete from stock_items");
         DB::delete("delete from master_items");
-        DB::delete("delete from asset_owners");
         DB::delete("delete from assets");
-        User::create([
-            'username' => 'tes',
-            'password' => Hash::make('rahasia'),
-            'token' => 'tes',
-            'email' => 'tes@tes.com',
-        ]);
+        DB::delete("delete from asset_owners");
+        // User::create([
+        //     'username' => 'hanna',
+        //     'password' => Hash::make('rahasia'),
+        //     'token' => 'tes',
+        //     'email' => 'tes@tes.com',
+        // ]);
     }
 }
