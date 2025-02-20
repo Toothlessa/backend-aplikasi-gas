@@ -109,11 +109,11 @@ class CustomerController extends Controller
         $customer = $this->getCustomer($id);
         $data = $request->validated();
 
-        if(isset($data['customer_name'])) {
+        if($data['customer_name'] != $customer->customer_name) {
             $this->checkCustomerExists($data['customer_name']);
         }
 
-        if(isset($data['email'])) {
+        if($data['email'] != $customer->email) {
             $this->checkEmailExists($data['email']);
         }
 

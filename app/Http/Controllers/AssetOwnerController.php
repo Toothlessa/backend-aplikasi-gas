@@ -10,7 +10,6 @@ use App\Models\AssetOwner;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AssetOwnerController extends Controller
@@ -62,7 +61,6 @@ class AssetOwnerController extends Controller
     {
         $user = Auth::user();
         $assetOwner = AssetOwner::query()
-                                ->where('active_flag', 'Y')
                                 ->orderByDesc('active_flag')
                                 ->orderBy('name')
                                 ->get();

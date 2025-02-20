@@ -227,10 +227,10 @@ class CustomerTest extends TestCase
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
 
-        $customer = Customer::query()->first();
+        $customer = Customer::query()->first();  
 
         $this->put('/api/customers/' .$customer->id, [
-            'customer_name' => 'test',
+            'customer_name' => 'renan',
             'nik' => '119011',
             'email' => 'muhrenan@gmail.com',
             'phone' => '0811111',
@@ -251,7 +251,7 @@ class CustomerTest extends TestCase
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'Judi',
             'nik' => '119011',
-            'email' => 'test@gmail.com',
+            'email' => 'renan@gmail.com',
             'phone' => '0811111',
         ], [
             'Authorization' => 'test'

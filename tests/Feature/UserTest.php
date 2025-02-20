@@ -218,7 +218,7 @@ class UserTest extends TestCase
 
     public function testUpdateAllSuccess(){
         $this->seed([UserSeeder::class]);
-        $oldUser = User::where('username', 'test0')->first(); 
+        $oldUser = User::where('username', 'test100')->first(); 
 
         $this->patch('/api/users/current', [
             'username' => 'test1',
@@ -265,7 +265,7 @@ class UserTest extends TestCase
 
     public function testLogoutSuccess(){
         $this->seed([UserSeeder::class]);
-        $oldUser = User::where('username', 'test')->first(); 
+        $oldUser = User::where('username', 'test0')->first(); 
 
         $this->delete('/api/users/logout',[],[
                 'Authorization' => 'test'
@@ -275,7 +275,7 @@ class UserTest extends TestCase
             'data' => true
         ]);
 
-        $newUser = User::where('username', 'test')->first();
+        $newUser = User::where('username', 'test0')->first();
         self::assertNotEquals($oldUser->token, $newUser->token); 
        self::assertNull($newUser->token);
     }

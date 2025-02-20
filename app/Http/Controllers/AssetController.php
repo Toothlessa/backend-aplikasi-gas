@@ -69,8 +69,6 @@ class AssetController extends Controller
         $data = $request->validated();  
         $asset = new Asset($data);
 
-        $this->checkAssetNameExists($data['asset_name']);
-
         $asset->cogs = $data['cogs'] * $data['quantity'];
         $asset->selling_price = $data['selling_price'] * $data['quantity'];
         $asset->created_by = $user->id;
