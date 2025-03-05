@@ -15,6 +15,16 @@ class AssetSeeder extends Seeder
     public function run(): void
     {
         $assetOwner = AssetOwner::query()->latest('id')->first();
+
+        Asset::create([
+            'owner_id' => $assetOwner->id,
+            'asset_name' => 'GAS LPG 3KG KOSONG',
+            'quantity' => 1000,
+            'cogs' => 14000000,
+            'selling_price' => 16000000,
+            'description' => 'Asset Modal',
+        ]);
+
         Asset::create([
             'owner_id' => $assetOwner->id,
             'asset_name' => 'Gas 3 Kg',

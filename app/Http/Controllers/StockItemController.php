@@ -6,8 +6,10 @@ use App\Http\Requests\StockItemInputRequest;
 use App\Http\Resources\StockItemGetCollection;
 use App\Http\Resources\StockItemGetDetailCollection;
 use App\Http\Resources\StockItemResource;
+use App\Models\Asset;
 use App\Models\MasterItem;
 use App\Models\StockItem;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -31,10 +33,11 @@ class StockItemController extends Controller
 
         $stock = DB::table("stock_items")
         ->join("master_items", "stock_items.item_id", 'master_items.id')
-        ->selectRaw("stock_items.item_id, master_items.item_name, master_items.item_code, master_items.category, 
+        ->join('category_items', 'category_id', 'category_items.id')
+        ->selectRaw("stock_items.item_id, master_items.item_name, master_items.item_code, category_items.name AS category, 
                  sum(stock) as total_stock, master_items.cost_of_goods_sold, master_items.selling_price")
         // ->whereRaw("master_items.id = COALESCE('$itemId', master_items.id)")
-        ->groupBy("stock_items.item_id", "master_items.item_name","master_items.item_code", "master_items.category", 
+        ->groupBy("stock_items.item_id", "master_items.item_name","master_items.item_code", "category_items.name", 
                 "master_items.cost_of_goods_sold", "master_items.selling_price")
         ->get();
 
@@ -50,7 +53,8 @@ class StockItemController extends Controller
     public function queryGetDetailStock($itemId) {
         $stock = DB::table("stock_items")
                 ->join("master_items", "stock_items.item_id", "master_items.id")
-                ->selectRaw("stock_items.id, item_id, item_name, item_code, category, stock, stock_items.created_at")
+                ->join('category_items', 'category_id', 'category_items.id')
+                ->selectRaw("stock_items.id, item_id, item_name, item_code, category_items.name AS category, stock, stock_items.created_at")
                 ->whereNull("prev_stock_id")
                 ->where("item_id", $itemId)
                 ->orderByDesc("stock_items.created_at")
@@ -64,6 +68,22 @@ class StockItemController extends Controller
         }
 
         return $stock;
+    }
+
+    public function queryGetDisplayStock($itemId) {
+
+        $yesterdayStock = StockItem::where('item_id', $itemId)
+                                ->where('created_at', Carbon::yesterday())
+                                ->sum('stock');
+
+        $runStock = StockItem::where('item_id', $itemId)->sum('stock');
+        $emptyGas = 560 - $runStock; 
+
+        $arrName=array("yesterday_stock","running_stock","emptyGasOwned");
+        $arrValue=array($yesterdayStock, $runStock, $emptyGas);
+        $displayStock=array_combine($arrName,$arrValue);
+
+        return $displayStock;
     }
 
     public function create($itemId, StockItemInputRequest $request): JsonResponse
@@ -110,5 +130,37 @@ class StockItemController extends Controller
         $stock = $this->queryGetDetailStock($itemId);
 
         return new StockItemGetDetailCollection($stock);
+    }
+
+    public function getDisplayStock() {
+
+        $user = Auth::user();
+
+        $gasItem = MasterItem::whereRaw("upper(item_name) = 'GAS LPG 3KG'")->first();
+
+        if($gasItem == null) {
+            goto arrName;
+        }
+
+        $emptyGas = Asset::whereRaw("upper(asset_name) = 'GAS LPG 3KG KOSONG'")
+                        ->sum('quantity');
+
+        $yesterdayStock = StockItem::where('item_id', $gasItem->id)
+                                    ->where('created_at', Carbon::yesterday())
+                                    ->sum('stock');
+
+
+        $runStock = StockItem::where('item_id', $gasItem->id)
+                              ->sum('stock');                              
+        $emptyGasOwned = $emptyGas;
+        $emptyGas = $emptyGas - $runStock; 
+
+        arrName :
+        
+        $arrName=array("yesterday_stock","running_stock", "empty_gas", "empty_gas_owned");
+        $arrValue=array($yesterdayStock ?? 0, $runStock ?? 0,  $emptyGas ?? 0, $emptyGasOwned ?? 0);
+        $displayStock=array_combine($arrName,$arrValue);
+
+        return $displayStock;
     }
 }

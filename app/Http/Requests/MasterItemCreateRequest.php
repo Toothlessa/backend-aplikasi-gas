@@ -26,7 +26,8 @@ class MasterItemCreateRequest extends FormRequest
         return [
             'item_name'          => ['required', 'max:100'],
             'item_code'          => ['nullable','max:100'],
-            'category'           => ['required', 'max:100'],
+            'item_type'          => [ 'max:50'],
+            'category_id'        => ['required'],
             'cost_of_goods_sold' => ['required'],
             'selling_price'      => ['required'],
         ];

@@ -215,18 +215,4 @@ class TransactionController extends Controller
     return response()->json($transaction);
    }
 
-   public function getDisplayStock($itemId) {
-    $user = Auth::user();
-
-    $runStock = StockItem::where('item_id', $itemId)->sum('stock')->get();
-    // $emptyGas = StockItem::select('560 - stock as Stock')
-    //                         ->where('item_id', $itemId)
-    //                         ->get();
-    // $yesterdayStock = StockItem::where('item_id', $itemId)
-    //                             ->where('created_ad', Carbon::yesterday())
-    //                             ->sum('stock')L
-    //                             ->get();
-    return $runStock;
-
-   }
 }

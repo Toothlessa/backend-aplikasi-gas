@@ -9,6 +9,8 @@ use Database\Seeders\SearchSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -425,5 +427,23 @@ class CustomerTest extends TestCase
         ]);
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
+
+    public function testImports_csv_file_successfully()
+    {
+        $this->seed([UserSeeder::class]);
+
+        // Create a test CSV file
+        $csvData = "customer_name,nik,email,address,phone\nJohn Doe,332121312,john@gmail.com,sinsar,082191\nJane Smith,332121311,Jane@gmail.com,sinsara,082192";
+        $file = UploadedFile::fake()->createWithContent('test.csv', $csvData);
+
+        $response = $this->post('/api/customers/import-csv', ['csvFile' => $file],
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(200);
+
+        // $response->assertStatus(404);
+        $this->assertDatabaseHas('customers', ['customer_name' => 'John Doe', 'nik' => 332121312]);
+        $this->assertDatabaseHas('customers', ['customer_name' => 'Jane Smith', 'nik' => 332121311]);
     }
 }

@@ -44,7 +44,7 @@ class DebtController extends Controller
             ->selectRaw("customer_id, customer_name, SUM(amount_pay) as total_pay, SUM(total) as total_debt,
                     SUM(amount_pay) - SUM(total) as  debt_left")
             ->groupBy("customer_name")
-            ->havingRaw("SUM(amount_pay) - SUM(total) != 0")
+            ->havingRaw("SUM(COALESCE(amount_pay, 0)) - SUM(total) != 0")
             ->get();
 
         if(!$debt){

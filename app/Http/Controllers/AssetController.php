@@ -44,13 +44,14 @@ class AssetController extends Controller
         return $sumAssetOwner;
     }
 
-    public function queryDetailAsset($ownerId) {
+    public function queryDetailAsset($ownerId, $assetName) {
 
         $detailAsset = DB::table('assets')
                         ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
                         -> select('assets.id', 'owner_id', 'asset_owners.name', 'asset_name', 
                                    'description', 'quantity', 'cogs', 'selling_price', 'assets.created_at')
                         ->where('owner_id', $ownerId)
+                        ->where('asset_name', $assetName)
                         ->orderBy('assets.created_at')
                         ->get();
 
@@ -93,11 +94,11 @@ class AssetController extends Controller
         return new AssetGetSummaryCollection($sumAssetOwner);
     }
 
-    public function getDetailAsset($ownerId):AssetGetDetailCollection {
+    public function getDetailAsset($ownerId, $assetName):AssetGetDetailCollection {
 
         $user = Auth::user();
 
-        $detailAsset = $this->queryDetailAsset($ownerId);
+        $detailAsset = $this->queryDetailAsset($ownerId, $assetName);
 
         return new AssetGetDetailCollection($detailAsset);
     }
@@ -105,15 +106,14 @@ class AssetController extends Controller
     public function update(AssetCreateRequest $request, $id): AssetCreateResource {
 
         $user = Auth::user();
-        
         $data = $request->validated();
-
-        if(isset($data['asset_name'])) {
-            $this->checkAssetNameExists($data['asset_name']);
-        }
-
+        
         $asset = $this->getAssetById($id);
         $asset->fill($data);
+
+        if($data['asset_name'] != $asset->name) {
+            $this->checkAssetNameExists($data['asset_name']);
+        }
 
         $asset->cogs = $data['cogs'] * $data['quantity'];
         $asset->selling_price = $data['selling_price'] * $data['quantity'];
