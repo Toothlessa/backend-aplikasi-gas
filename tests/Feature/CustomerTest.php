@@ -22,6 +22,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'khannedy',
+            'type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'address' => 'Jl.Ledeng Sindang Sari',
@@ -33,6 +34,7 @@ class CustomerTest extends TestCase
         ->assertJson([
             "data" => [
             'customer_name' => 'khannedy',
+            'type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'address' => 'Jl.Ledeng Sindang Sari',
@@ -47,6 +49,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => '',
+            'type' => 'RT',
             'nik' => 3,
             'email' => 'Eko@pzn.com',
             'phone' => '087829190920'
@@ -68,6 +71,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'khannedy',
+            'type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'phone' => '087829190920'
@@ -86,6 +90,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'renan',
+            'type' => 'RT',
             'nik' => '3271040408410005',
             'email' => 'Eko@pzn.com',
             'phone' => '0919231'
@@ -104,6 +109,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'khannedy',
+            'type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'phone' => '087829190920'
@@ -132,6 +138,7 @@ class CustomerTest extends TestCase
             ->assertJson([
                 'data' => [
                     'customer_name' => 'test',
+                    'type' => 'RT',
                     'nik' => '3271981923812912',
                     'email' => 'test@gmail.com',
                     'address' => 'Jl.Ledeng Sindang Sari',
@@ -184,6 +191,7 @@ class CustomerTest extends TestCase
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'Ijat',
+            'type' => 'UM',
             'nik' => '119011',
             'email' => 'muhrenan@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari II',
@@ -194,6 +202,7 @@ class CustomerTest extends TestCase
         ->assertJson([
             'data' => [
                 'customer_name' => 'Ijat',
+                'type' => 'UM',
                 'nik' => '119011',
                 'email' => 'muhrenan@gmail.com',
                 'address' => 'Jl.Ledeng Sindang Sari II',
@@ -233,6 +242,7 @@ class CustomerTest extends TestCase
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'renan',
+            'type' => 'RT',
             'nik' => '119011',
             'email' => 'muhrenan@gmail.com',
             'phone' => '0811111',
@@ -252,6 +262,7 @@ class CustomerTest extends TestCase
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'Judi',
+            'type' => 'RT',
             'nik' => '119011',
             'email' => 'renan@gmail.com',
             'phone' => '0811111',
