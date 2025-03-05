@@ -18,7 +18,8 @@ class MasterItem extends Model
     protected $fillable = [
         'item_name',
         'item_code',
-        'category',
+        'item_type',
+        'category_id',
         'cost_of_goods_sold',
         'selling_price',
     ];

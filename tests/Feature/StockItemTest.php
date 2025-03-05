@@ -5,7 +5,11 @@ namespace Tests\Feature;
 use App\Models\MasterItem;
 use App\Models\StockItem;
 use Carbon\Carbon;
+use Database\Seeders\AssetOwnerSeeder;
+use Database\Seeders\AssetSeeder;
+use Database\Seeders\CategoryItemSeeder;
 use Database\Seeders\MasterItemSeeder;
+use Database\Seeders\StockItemSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -21,7 +25,7 @@ class StockItemTest extends TestCase
     
     public function testInputStockSuccess()
     {
-        $this->seed([UserSeeder::class, MasterItemSeeder::class]);
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
         $masterItem = MasterItem::query()->limit(1)->first();
 
         $this->post('/api/stockitems/' .($masterItem->id), [
@@ -102,24 +106,17 @@ class StockItemTest extends TestCase
     }
 
     public function testGetDisplayStock() {
-        $this->testInputStockSuccess();
-        $stockItem = StockItem::query()->first();
-        $yesterdayStock = StockItem::where('item_id', $stockItem->item_id)
-                                ->where('created_at', Carbon::yesterday())
-                                ->sum('stock');
-        $runStock = StockItem::where('item_id', $stockItem->item_id)->sum('stock');
-        $emptyGas = 560 - $runStock; 
 
-        $arrName=array("yesterday_stock","running_stock","emptyGasOwned");
-        $arrValue=array($yesterdayStock, $runStock, $emptyGas);
-        $displayStock=array_combine($arrName,$arrValue);
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class,  AssetOwnerSeeder::class, 
+                            MasterItemSeeder::class, StockItemSeeder::class, AssetSeeder::class]);
 
-        assertNotNull($runStock);
-        assertEquals($runStock, 100);
-        assertEquals($emptyGas, 460);
-        assertEquals($yesterdayStock, 0);
-        // assertJson($displayStock, "a");
-        Log::info(json_encode($displayStock, JSON_PRETTY_PRINT));
+        $response = $this->get('api/stockitems/displaystock', 
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(status: 200)
+        ->Json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
 
 }

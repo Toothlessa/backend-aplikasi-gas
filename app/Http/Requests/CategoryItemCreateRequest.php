@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class MasterItemUpdateRequest extends FormRequest
+class CategoryItemCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -16,19 +16,10 @@ class MasterItemUpdateRequest extends FormRequest
         return $this->user() != null;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
-          return [
-            'item_name'          => ['required', 'max:100'],
-            'item_code'          => ['nullable','max:100'],
-            'category_id'        => ['required'],
-            'cost_of_goods_sold' => ['required'],
-            'selling_price'      => ['required'],
+        return [
+            'name' => ['required', 'max:50'],
         ];
     }
 

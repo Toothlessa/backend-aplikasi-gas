@@ -6,6 +6,7 @@ use App\Http\Requests\MasterItemCreateRequest;
 use App\Http\Requests\MasterItemUpdateRequest;
 use App\Http\Resources\MasterItemCollection;
 use App\Http\Resources\MasterItemResource;
+use App\Models\CategoryItem;
 use App\Models\MasterItem;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,17 +46,18 @@ class MasterItemController extends Controller
             ], 400));
         }
     } 
-    public function generateItemCodeSeq(string $itemCategory): string
+    public function generateItemCodeSeq(string $categoryId): string
     {
-        $lastSeq = MasterItem::where("category", $itemCategory)->orderByDesc("id")->first();
+        $lastSeq = MasterItem::where("category_id", $categoryId)->orderByDesc("id")->first();
+        $categoryItem = CategoryItem::find($categoryId);
 
-        if(isset($lastSeq['item_code'])){
+        if($lastSeq) {
             $getPrefix = substr($lastSeq->item_code, 0, 2);
             $getSubfix = sprintf('%02d', (int)substr($lastSeq->item_code, 2, 2) + 1);
             
         $itemCode = $getPrefix . $getSubfix;
 
-        } elseif ($itemCategory == "Bahan Pokok"){
+        } elseif ($categoryItem->name == "Bahan Pokok"){
             
             $itemCode = "BP01";
         }
@@ -69,7 +71,7 @@ class MasterItemController extends Controller
         $data = $request->validated();
 
         $this->checkItemExists($data['item_name']);
-        $getItemCode = $this->generateItemCodeSeq($data['category']);
+        $getItemCode = $this->generateItemCodeSeq($data['category_id']);
 
         $masterItem = new MasterItem($data);
         $masterItem->item_code = $getItemCode;
@@ -89,7 +91,20 @@ class MasterItemController extends Controller
     public function getAll(): MasterItemCollection
     {
         $user = Auth::user();
+
         $masterItem = MasterItem::query()->orderByDesc('active_flag')
+                                         ->orderBy('item_name')
+                                         ->get();
+
+        return new MasterItemCollection($masterItem);
+    }
+
+    public function getItemByItemType($itemType): MasterItemCollection
+    {
+        $user = Auth::user();
+
+        $masterItem = MasterItem::query()->where('item_type', $itemType)
+                                         ->orderByDesc('active_flag')
                                          ->orderBy('item_name')
                                          ->get();
 
@@ -102,10 +117,6 @@ class MasterItemController extends Controller
         $masterItem = $this->getItem($id);
         $data = $request->validated();
         
-        if($data['item_name'] != $masterItem->item_name) {
-            $this->checkItemExists($data['item_name']);
-        }
-
         if($data['item_name'] != $masterItem->item_name) {
             $this->checkItemExists($data['item_name']);
         }
@@ -153,10 +164,10 @@ class MasterItemController extends Controller
                 $builder->where('item_code','like','%'.$itemCode.'%');
             }
 
-            $category = $request->input('category');
-            if($category){
-                $builder->where('category','like','%'.$category.'%');
-            }
+            // $category = $request->input('category');
+            // if($category){
+            //     $builder->where('category','like','%'.$category.'%');
+            // }
         });
 
         $masterItem = $masterItem->paginate(perPage: $size, page: $page);
@@ -180,5 +191,4 @@ class MasterItemController extends Controller
 
         return new MasterItemResource($masterItem);
     }
-
 }

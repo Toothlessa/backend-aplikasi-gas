@@ -13,6 +13,10 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
+use League\Csv\Reader;
 
 class CustomerController extends Controller
 {
@@ -101,7 +105,6 @@ class CustomerController extends Controller
 
         return new CustomerCollection($customer);
     }
-
 
     public function update($id, CustomerUpdateRequest $request): CustomerResource
     {
@@ -193,5 +196,37 @@ class CustomerController extends Controller
         $customer->save();
 
         return new CustomerResource($customer);
+    }
+
+    public function importCsv(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'csvFile' => 'required|mimes:csv,txt',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $file = $request->file('csvFile');
+        $path = $file->getRealPath();
+
+        try {
+            $csv = Reader::createFromPath($path, 'r');
+            $csv->setHeaderOffset(0); // Assuming the first row is the header
+
+            $records = $csv->getRecords();
+
+            DB::beginTransaction();
+            foreach ($records as $record) {
+                DB::table('customers')->insert($record); 
+            }
+            DB::commit();
+
+            return response()->json(['message' => 'CSV imported successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error importing CSV: ' . $e->getMessage()], 500);
+        }
     }
 }

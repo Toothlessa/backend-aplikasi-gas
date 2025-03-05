@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AssetOwnerCreateRequest;
-use App\Http\Requests\CustomerCreateRequest;
 use App\Http\Resources\AssetOwnerCreateResource;
 use App\Http\Resources\AssetOwnerGetAllCollection;
 use App\Models\AssetOwner;
@@ -76,8 +75,8 @@ class AssetOwnerController extends Controller
 
         $assetOwner->fill($data);
 
-        if(isset($data['name'])) {
-            $this->checkNameExists($data["name"]);
+        if($data['name'] != $assetOwner->name) {
+            $this->checkNameExists($data['name']);
         }
 
         $assetOwner->updated_by = $user->id;

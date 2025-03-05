@@ -33,8 +33,8 @@ class AssetTest extends TestCase
             'data' => [
                 'asset_name' => 'Gas 3 Kg',
                 'quantity' => 100,
-                'cogs' => 14000000,
-                'selling_price' => 16000000,
+                'cogs' => 140000,
+                'selling_price' => 160000,
                 'description' => 'Beli di Mas Supar',
             ]
             ]);
@@ -56,8 +56,8 @@ class AssetTest extends TestCase
     public function testGetDetailAssets() {
         $this->testGetSummaryOwnerAsset();
 
-        $assetOwner = AssetOwner::query()->first();
-        $response = $this->get('api/assets/detail/'.$assetOwner->id,
+        $assets = Asset::query()->first();
+        $response = $this->get('api/assets/details/'.$assets->owner_id.'/assets/'.$assets->asset_name,
         [
             'Authorization' => 'test'
         ])->assertStatus(status:200)
@@ -87,8 +87,8 @@ class AssetTest extends TestCase
             'data' => [
                 'asset_name' => 'Gas 4 Kg',
                 'quantity' => 10,
-                'cogs' => 1400000,
-                'selling_price' => 1600000,
+                'cogs' => 140000,
+                'selling_price' => 160000,
                 'description' => 'Beli di Pak Kandar',
             ]
             ]);

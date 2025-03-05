@@ -7,6 +7,7 @@ use App\Models\MasterItem;
 use App\Models\StockItem;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Database\Seeders\CategoryItemSeeder;
 use Database\Seeders\CustomerSeeder;
 use Database\Seeders\MasterItemSeeder;
 use Database\Seeders\StockItemSeeder;
@@ -21,7 +22,7 @@ class TransactionTest extends TestCase
 {
     public function testCreateSuccess()
     {
-        $this->seed([UserSeeder::class, MasterItemSeeder::class, StockItemSeeder::class, CustomerSeeder::class]);
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class, StockItemSeeder::class, CustomerSeeder::class]);
         
         $stockItem = StockItem::query()->limit(1)->first();
         $customer = Customer::query()->limit(1)->first();
@@ -105,9 +106,9 @@ class TransactionTest extends TestCase
     public function testgetTodayTransaction()
     {
         $this->seed(
-            [UserSeeder::class, MasterItemSeeder::class, 
-            StockItemSeeder::class, CustomerSeeder::class,
-            TransactionSeeder::class,
+            [UserSeeder::class, CategoryItemSeeder::class, 
+            MasterItemSeeder::class, StockItemSeeder::class, 
+            CustomerSeeder::class, TransactionSeeder::class,
         ]);
         //2025-01-22 00:00:00
 
@@ -123,9 +124,9 @@ class TransactionTest extends TestCase
     public function testgetTomorrowTransaction()
     {
         $this->seed(
-            [UserSeeder::class, MasterItemSeeder::class, 
-            StockItemSeeder::class, CustomerSeeder::class,
-            TransactionSeeder::class,
+            [UserSeeder::class, CategoryItemSeeder::class, 
+            MasterItemSeeder::class, StockItemSeeder::class, 
+            CustomerSeeder::class, TransactionSeeder::class,
         ]);
         //2025-01-22 00:00:00
         $date=Carbon::tomorrow();
@@ -142,9 +143,9 @@ class TransactionTest extends TestCase
     public function testGetOutsandingTransaction()
     {
         $this->seed(
-            [UserSeeder::class, MasterItemSeeder::class, 
-            StockItemSeeder::class, CustomerSeeder::class,
-            TransactionSeeder::class,
+            [UserSeeder::class, CategoryItemSeeder::class, 
+            MasterItemSeeder::class, StockItemSeeder::class, 
+            CustomerSeeder::class, TransactionSeeder::class,
         ]);
         //2025-01-22 00:00:00
 
@@ -159,9 +160,9 @@ class TransactionTest extends TestCase
 
     public function testGetSalesPerWeek() {
         $this->seed(
-            [UserSeeder::class, MasterItemSeeder::class, 
-            StockItemSeeder::class, CustomerSeeder::class,
-            TransactionSeeder::class,
+            [UserSeeder::class, CategoryItemSeeder::class, 
+            MasterItemSeeder::class, StockItemSeeder::class, 
+            CustomerSeeder::class, TransactionSeeder::class,
         ]);
         $item = MasterItem::where('item_name', 'test')->first();
 
@@ -176,9 +177,9 @@ class TransactionTest extends TestCase
 
     public function testGetTopCustomer() {
         $this->seed(
-            [UserSeeder::class, MasterItemSeeder::class, 
-            StockItemSeeder::class, CustomerSeeder::class,
-            TransactionSeeder::class,
+            [UserSeeder::class, CategoryItemSeeder::class, 
+            MasterItemSeeder::class,  StockItemSeeder::class, 
+            CustomerSeeder::class, TransactionSeeder::class,
         ]);
         $item = MasterItem::where('item_name', 'test')->first();
 
