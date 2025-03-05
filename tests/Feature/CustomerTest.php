@@ -445,7 +445,7 @@ class CustomerTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         // Create a test CSV file
-        $csvData = "customer_name,nik,email,address,phone\nJohn Doe,332121312,john@gmail.com,sinsar,082191\nJane Smith,332121311,Jane@gmail.com,sinsara,082192";
+        $csvData = "customer_name,type,nik,email,address,phone\nJohn Doe,RT,332121312,john@gmail.com,sinsar,082191\nJane Smith,UM,332121311,Jane@gmail.com,sinsara,082192";
         $file = UploadedFile::fake()->createWithContent('test.csv', $csvData);
 
         $response = $this->post('/api/customers/import-csv', ['csvFile' => $file],

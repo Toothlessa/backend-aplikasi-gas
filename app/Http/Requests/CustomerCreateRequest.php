@@ -25,7 +25,7 @@ class CustomerCreateRequest extends FormRequest
     {
         return [
             'customer_name' => ['required', 'max:50'],
-            'type'          => ['required', 'max:10'],
+            'type'          => ['required', 'max:3'],
             'nik'           => ['nullable', 'max:50'],
             'email'         => ['nullable', 'email', 'max:50'],
             'address'         => ['nullable', 'max:100'],
