@@ -110,7 +110,9 @@ class TransactionController extends Controller
             ->join("customers", "customers.id", "customer_id")
             ->join("master_items", "master_items.id", "item_id")
             ->selectraw("transactions.id, customer_name, item_name, description, quantity, amount, total, transactions.created_at")
-            ->whereNotIn("description", ["umum", "done kirim", "done titip"])
+            ->whereNotIn("description", ["umum", "balancing"])
+            ->whereNotLike("description", "%done%")
+            ->whereNotLike("description", "%teh iya%")
             ->orderBy("customer_id")
             ->orderBy("transactions.created_at")
             ->get();

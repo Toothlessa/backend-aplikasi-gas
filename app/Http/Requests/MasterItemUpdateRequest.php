@@ -25,6 +25,7 @@ class MasterItemUpdateRequest extends FormRequest
     {
           return [
             'item_name'          => ['required', 'max:100'],
+            'item_type'          => ['required', 'max:50'],
             'item_code'          => ['nullable','max:100'],
             'category_id'        => ['required'],
             'cost_of_goods_sold' => ['required'],
