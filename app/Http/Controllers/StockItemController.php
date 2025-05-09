@@ -9,6 +9,7 @@ use App\Http\Resources\StockItemResource;
 use App\Models\Asset;
 use App\Models\MasterItem;
 use App\Models\StockItem;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -146,7 +147,7 @@ class StockItemController extends Controller
                         ->sum('quantity');
 
         $yesterdayStock = StockItem::where('item_id', $gasItem->id)
-                                    ->where('created_at', Carbon::yesterday())
+                                    ->whereDate('created_at', Carbon::yesterday())
                                     ->sum('stock');
 
 

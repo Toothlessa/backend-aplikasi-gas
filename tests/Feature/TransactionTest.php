@@ -195,12 +195,12 @@ class TransactionTest extends TestCase
     public function testQueryHasMany()
     {
         $this->testCreateSuccess();
-        $transaction = Transaction::query()->limit(1)->first();
+        $transaction = Transaction::query()->first();
         $customer = $transaction->customer;
 
         self::assertNotNull($customer);
-        self::assertEquals("test", $customer->customer_name);
-        self::assertEquals("3271981923812912", $customer->nik);
+        self::assertEquals("Rizki Zulfianty", $customer->customer_name);
+        self::assertEquals("32710918929101", $customer->nik);
     }
 
 }

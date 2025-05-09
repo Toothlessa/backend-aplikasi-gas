@@ -16,13 +16,14 @@ class TransactionGetOutstandingResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'customer_id' => $this->customer_id,
             'customer_name' => $this->customer_name,
             'item_name' => $this->item_name,
             'description' => $this->description,
             'quantity' => $this->quantity,
             'amount' => $this->amount,
             'total' => $this->total,
-            'created_at' => date("D - d-M-y", strtotime($this->created_at)),
+            'created_at' => date("d-m-y", strtotime($this->created_at)),
         ];
     }
 }

@@ -23,7 +23,6 @@ class TransactionSeeder extends Seeder
 
         for($x=0; $x<20; $x++){
         Transaction::create([
-            'trx_number' => 'trxtest'. $x,
             'quantity' => $x,
             'amount' => 19000,
             'total' => 19000 * $x,
@@ -37,7 +36,6 @@ class TransactionSeeder extends Seeder
 
         for($i=0; $i<20; $i++){
             Transaction::create([
-                'trx_number' => 'trxtestx'. $i,
                 'quantity' => $i,
                 'amount' => 19000,
                 'total' => 19000 * $i,
@@ -46,6 +44,19 @@ class TransactionSeeder extends Seeder
                 'customer_id' => $customer->id,
                 'created_by' => $user->id,
                 'created_at' => Carbon::tomorrow(),
+            ]);
+        }
+
+        for($i=0; $i<20; $i++){
+            Transaction::create([
+                'quantity' => $i,
+                'amount' => 19000,
+                'total' => 19000 * $i,
+                'description' => 'Test Yesterday',
+                'item_id' => $item->id,
+                'customer_id' => $customer->id,
+                'created_by' => $user->id,
+                'created_at' => Carbon::yesterday(),
             ]);
         }
     }

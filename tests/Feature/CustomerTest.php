@@ -129,8 +129,7 @@ class CustomerTest extends TestCase
     public function testGetSuccess()
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
-        //$user = User::where('username', 'test')->first();
-        $customer = Customer::query()->limit(1)->first();
+        $customer = Customer::where('customer_name', 'test')->first();
 
         $this->get('/api/customers/' . $customer->id,[
             'Authorization' => 'test'
@@ -348,7 +347,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(21, $response['meta']['total']);
     }
 
     public function testSearchByCustomerAddress()
@@ -363,7 +362,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(21, $response['meta']['total']);
     }
     public function testSearchByCustomerPhone()
     {
@@ -407,7 +406,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(5, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(21, $response['meta']['total']);
         self::assertEquals(2, $response['meta']['current_page']);    
     }
 

@@ -19,25 +19,8 @@ class User extends Model implements Authenticatable
     protected $fillable = [
         'username',
         'password',
-        'fullname',
         'email',
-        'phone',
-        'street',
-        'city',
-        'province',
-        'postal_code',
-        'country',
     ];
-
-    // public function createdBy(): HasMany
-    // {
-    //     return $this->hasMany(Customer::class,'created_by','id');
-    // }
-
-    // public function updatedBy(): HasMany
-    // {
-    //     return $this->hasMany(Customer::class,'update_by','id');
-    // }
 
     public function getAuthIdentifierName()
     {

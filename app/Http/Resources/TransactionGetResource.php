@@ -16,7 +16,6 @@ class TransactionGetResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'trx_number' => $this->trx_number,
             'quantity' => $this->quantity,
             'amount' => $this->amount,
             'total' => $this->total,
@@ -26,7 +25,7 @@ class TransactionGetResource extends JsonResource
             'customer_name' => $this->customer_name,
             'nik' => $this->nik,
             'created_by' => $this->created_by,
-            'created_at' => date("h:m:i", strtotime($this->created_at)),
+            'created_at' => date("h:i:s", strtotime($this->created_at)),
         ];
     }
 }

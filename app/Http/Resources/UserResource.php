@@ -19,15 +19,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'username' => $this->username,
             'email' =>$this->email,
-            // 'fullname' =>$this->fullname,
             'token' =>$this->whenNotNull($this->token),
             'expiresIn'=>$this->expiresIn,
-            // 'phone' =>$this->phone,
-            // 'street' =>$this->street,
-            // 'city' =>$this->city,
-            // 'province' =>$this->province,
-            // 'postal_code' =>$this->postal_code,
-            // 'country' =>$this->country,
         ];
     }
 

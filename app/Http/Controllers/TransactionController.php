@@ -52,7 +52,7 @@ class TransactionController extends Controller
         $transaction = DB::table("transactions")
             ->join("customers", "transactions.customer_id", 'customers.id')
             ->select("customers.customer_name", "customers.nik", "transactions.id",
-                    "transactions.trx_number", "transactions.quantity", "transactions.amount",
+                    "transactions.quantity", "transactions.amount",
                     "transactions.total", "transactions.description", "transactions.item_id",
                     "transactions.customer_id", "transactions.created_by", "transactions.created_at",)
             ->whereDate("transactions.created_at", $date)
@@ -71,11 +71,14 @@ class TransactionController extends Controller
     public function getDataSaleItem(){
         
         $transaction = DB::table('transactions')
-            ->selectraw("DAYNAME(created_at) as day, 
-                        MONTHNAME(created_at) as month, sum(quantity) as total")
-            // ->where("item_id", $itemId)
+            ->selectraw("DATE_FORMAT(created_at, '%Y-%m') AS month,
+                                     DATE_FORMAT(created_at, '%d') AS day,  
+                                     sum(quantity) as total")
+            ->whereMonth("created_at", Carbon::now()->month)
+            ->orderByDesc("created_at")
             ->groupBy("day")
-            ->limit(7)
+            ->groupBy("month")
+            ->limit(30)
             ->get();
         
         if(!$transaction){
@@ -109,7 +112,8 @@ class TransactionController extends Controller
         $transaction = DB::table('transactions')
             ->join("customers", "customers.id", "customer_id")
             ->join("master_items", "master_items.id", "item_id")
-            ->selectraw("transactions.id, customer_name, item_name, description, quantity, amount, total, transactions.created_at")
+            ->selectraw("transactions.id, customers.id customer_id, customer_name, 
+                                    item_name, description, quantity, amount, total, transactions.created_at")
             ->whereNotIn("description", ["umum", "balancing"])
             ->whereNotLike("description", "%done%")
             ->whereNotLike("description", "%teh iya%")
@@ -146,7 +150,9 @@ class TransactionController extends Controller
         $data = $request->validated();
 
         $transaction = new Transaction($data);
-        $transaction->trx_number = $this->generateTrxNumber($itemId);
+        
+        //not used 
+        //$transaction->trx_number = $this->generateTrxNumber($itemId);
         
         //get item
         $masterItem = MasterItem::find($itemId);
