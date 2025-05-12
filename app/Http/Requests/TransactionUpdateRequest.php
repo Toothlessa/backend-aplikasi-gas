@@ -17,8 +17,8 @@ class TransactionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id'   => ['required'],
-            'quantity'      => ['required'],
+            'customer_id'   => ['required', 'numeric'],
+            'quantity'      => ['required', 'numeric'],
             'description'   => ['max:100'],
             'amount'        => ['required', 'numeric'],
             'total'         => ['required', 'numeric'],

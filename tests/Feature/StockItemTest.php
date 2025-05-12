@@ -26,7 +26,7 @@ class StockItemTest extends TestCase
     public function testInputStockSuccess()
     {
         $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
-        $masterItem = MasterItem::query()->limit(1)->first();
+        $masterItem = MasterItem::query()->first();
 
         $this->post('/api/stockitems/' .($masterItem->id), [
             'stock' => 100,
@@ -44,12 +44,11 @@ class StockItemTest extends TestCase
     public function testUpdateStockSuccess()
     {
         $this->testInputStockSuccess();
-        $stockInput = StockItem::query()->limit(1)->first();
-        $masterItem = MasterItem::where("item_name", "test1")->orderByDesc("id")->first();
+        $masterItem = MasterItem::query()->first();
+        $stockInput = StockItem::where('item_id', $masterItem->id)->first();
 
         $this->put('/api/stockitems/' .$stockInput->id, 
         [ 
-            'item_id' => $masterItem->id,
             'stock' => '560'
         ],
         [

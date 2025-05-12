@@ -17,14 +17,14 @@ class CategoryItemTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         $this->post('/api/categoryitems', [
-            'name' => 'Bahan Pokok',
+            'name' => 'Bahan Mentah',
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-                'name' => 'Bahan Pokok',
+                'name' => 'Bahan Mentah',
                 ]
             ]);
     }
@@ -117,7 +117,7 @@ class CategoryItemTest extends TestCase
             ]);
     }
 
-    public function testDeleteSuccess() {
+    public function testDeleteFailed() {
 
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
 
@@ -125,9 +125,9 @@ class CategoryItemTest extends TestCase
         $this->delete('/api/categoryitems/'.$categoryItem->id, [], 
         [
             'Authorization' => 'test'
-        ])->assertStatus(200)
+        ])->assertStatus(400)
         ->assertJson([
-            'data' => true
+            "errors" => "THIS_CATEGORY_EXISTS_IN_TRANSACTION"
             ]);
     }
 

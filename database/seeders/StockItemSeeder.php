@@ -25,14 +25,5 @@ class StockItemSeeder extends Seeder
             'selling_price' => 10000,
             'created_by' => $user->id,
         ]);
-
-        // $masterItem = MasterItem::where('item_name', 'GAS LPG 3KG')->first();
-        // StockItem::create([
-        //     'item_id' => $masterItem->id,
-        //     'stock' => 400,
-        //     'cogs' => 5000,
-        //     'selling_price' => 10000,
-        //     'created_by' => $user->id,
-        // ]);
     }
 }

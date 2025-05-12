@@ -26,14 +26,7 @@ class UserRegisterRequest extends FormRequest
         return [
             'username'  => ['nullable', 'max:100'],
             'password'  => ['required', 'max:100'],
-            'fullname'  => ['nullable', 'max:100'],
             'email'     => ['nullable', 'email', 'max:50'],
-            'phone'     => ['nullable', 'max:20'],
-            'street'    => ['nullable', 'max:100'],
-            'city'      => ['nullable', 'max:50'],
-            'province'  => ['nullable', 'max:50'],
-            'postal_code' => ['nullable', 'max:20'],
-            'country'   => 'nullable|max:50',
         ];
     }
 

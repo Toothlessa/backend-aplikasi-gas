@@ -33,7 +33,7 @@ class MasterItemTest extends TestCase
         ->assertJson([
             "data" => [
             'item_name' => 'Gas LPG 3 Kg',
-            'item_code' => 'BP01',
+            'item_code' => 'TE01',
             'item_type' => 'ASSET',
             'category' => 'Bahan Pokok',
             'cost_of_goods_sold' => 16000,
@@ -111,7 +111,7 @@ class MasterItemTest extends TestCase
     public function testGetItemSuccess()
     {
         $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
-        $masterItem = MasterItem::query()->limit(1)->first();
+        $masterItem = MasterItem::where('item_name', 'GAS LPG 3KG')->first();
 
         $this->get('/api/masteritems/' .$masterItem->id, 
         [
@@ -166,6 +166,7 @@ class MasterItemTest extends TestCase
 
         $this->put('/api/masteritems/' .$masterItem->id, 
         [ 'item_name' => 'Indomie Goreng',
+                'item_type' => 'RT',
                 'item_code' => 'AAP001',
                 'category_id' => $category->id,
                 'cost_of_goods_sold' => 3000,
@@ -177,6 +178,7 @@ class MasterItemTest extends TestCase
         ->assertJson([
            'data' => [
                 'item_name' => 'Indomie Goreng',
+                'item_type' => 'RT',
                 'item_code' => 'AAP001',
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -217,6 +219,7 @@ class MasterItemTest extends TestCase
 
         $this->put('/api/masteritems/' .$masterItem->id, 
         [ 'item_name' => 'test1',
+                'item_type' => 'RT',
                 'category_id' => $category->id,
                 'cost_of_goods_sold' => 3000,
                 'selling_price' => 3500,
@@ -237,6 +240,7 @@ class MasterItemTest extends TestCase
 
         $this->put('/api/masteritems/' .$masterItem->id, 
         [ 'item_name' => 'Indomie Goreng',
+                'item_type' => 'RT',
                 'item_code' => 'test002',
                 'category_id' => $category->id,
                 'cost_of_goods_sold' => 3000,
@@ -352,8 +356,8 @@ class MasterItemTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
-        self::assertEquals(9, count($response['data']));
-        self::assertEquals(9, $response['meta']['total']);
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(10, $response['meta']['total']);
     }
 
     public function testSearchPageSize()
@@ -368,7 +372,7 @@ class MasterItemTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(5, count($response['data']));
-        self::assertEquals(9, $response['meta']['total']);
+        self::assertEquals(10, $response['meta']['total']);
         self::assertEquals(1, $response['meta']['current_page']);
     }
 

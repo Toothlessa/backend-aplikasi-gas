@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StockItemInputRequest;
+use App\Http\Requests\StockUpdateRequest;
 use App\Http\Requests\TransactionCreateRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 use App\Http\Resources\TransactionCollection;
@@ -41,7 +43,7 @@ class TransactionController extends Controller
         $stockItem = StockItem::find($id);
         if(!$stockItem){
             throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
+                "errors" => "STOCK_NOT_FOUND"
             ])->setStatusCode(404));
         }
 
@@ -51,8 +53,9 @@ class TransactionController extends Controller
     public function getTransactionByDate($date){
         $transaction = DB::table("transactions")
             ->join("customers", "transactions.customer_id", 'customers.id')
-            ->select("customers.customer_name", "customers.nik", "transactions.id",
-                    "transactions.trx_number", "transactions.quantity", "transactions.amount",
+            ->join("stock_items", "transactions.stock_id", "stock_items.id")
+            ->select("customers.customer_name", "customers.nik", "stock_id", "transactions.id",
+                    "transactions.quantity", "transactions.amount",
                     "transactions.total", "transactions.description", "transactions.item_id",
                     "transactions.customer_id", "transactions.created_by", "transactions.created_at",)
             ->whereDate("transactions.created_at", $date)
@@ -71,11 +74,14 @@ class TransactionController extends Controller
     public function getDataSaleItem(){
         
         $transaction = DB::table('transactions')
-            ->selectraw("DAYNAME(created_at) as day, 
-                        MONTHNAME(created_at) as month, sum(quantity) as total")
-            // ->where("item_id", $itemId)
+            ->selectraw("DATE_FORMAT(created_at, '%Y-%m') AS month,
+                                     DATE_FORMAT(created_at, '%d') AS day,  
+                                     sum(quantity) as total")
+            ->whereMonth("created_at", Carbon::now()->month)
+            ->orderByDesc("created_at")
             ->groupBy("day")
-            ->limit(7)
+            ->groupBy("month")
+            ->limit(30)
             ->get();
         
         if(!$transaction){
@@ -109,7 +115,8 @@ class TransactionController extends Controller
         $transaction = DB::table('transactions')
             ->join("customers", "customers.id", "customer_id")
             ->join("master_items", "master_items.id", "item_id")
-            ->selectraw("transactions.id, customer_name, item_name, description, quantity, amount, total, transactions.created_at")
+            ->selectraw("transactions.id, customers.id customer_id, customer_name, 
+                                    item_name, description, quantity, amount, total, transactions.created_at")
             ->whereNotIn("description", ["umum", "balancing"])
             ->whereNotLike("description", "%done%")
             ->whereNotLike("description", "%teh iya%")
@@ -140,49 +147,62 @@ class TransactionController extends Controller
         return $trxNumber;
     }
 
-    public function create(TransactionCreateRequest $request, $itemId, $customer_id): JsonResponse
+    public function create(StockItemInputRequest $stockRequest, TransactionCreateRequest $request): JsonResponse
     {
+    
         $user = Auth::user();
-        $data = $request->validated();
+        $dataStock = $stockRequest->validated();
+        $dataTrx = $request->validated();
 
-        $transaction = new Transaction($data);
-        $transaction->trx_number = $this->generateTrxNumber($itemId);
-        
-        //get item
-        $masterItem = MasterItem::find($itemId);
+        return DB::transaction(function () use ($dataStock, $dataTrx, $user) {
+            // Get item
+            $masterItem = MasterItem::findOrFail($dataTrx['item_id']); // Use findOrFail to throw an exception if not found
 
-        $transaction->item_id = $itemId;
-        $transaction->customer_id = $customer_id;
-        $transaction->created_by = $user->id;
-        
-        $stockItem = StockItem::where("item_id", $itemId)->orderByDesc("id")->first();
-        
-        DB::table("stock_items")->insert([
-            "item_id" => $itemId,
-            "stock" => $transaction->quantity * -1,
-            "cogs" => $masterItem->cost_of_goods_sold,
-            "selling_price" => $transaction->amount,
-            "prev_stock_id" => $stockItem->id ?? 0,
-            "created_by" => $user->id,
-            "created_at" => Carbon::now(),
-        ]);
-        $transaction->save();
+            // Get the latest stock item
+            $stockItem = StockItem::where("item_id", $dataTrx['item_id'])->orderByDesc("id")->first();
 
-        return (new TransactionResource($transaction))->response()->setStatusCode(201);
+            // Create the new stock item
+            $InputStockItem = new StockItem($dataStock);
+            $InputStockItem->item_id = $dataTrx['item_id'];
+            $InputStockItem->cogs = $masterItem->cost_of_goods_sold;
+            $InputStockItem->selling_price = $masterItem->selling_price;
+            $InputStockItem->prev_stock_id = $stockItem ? $stockItem->id : 0; // Use null coalescing operator
+            $InputStockItem->created_by = $user->id;
+            $InputStockItem->save();
+
+            // Create the transaction
+            $transaction = new Transaction($dataTrx);
+            $transaction->item_id = $dataTrx['item_id'];
+            $transaction->customer_id = $dataTrx['customer_id'];
+            $transaction->stock_id = $InputStockItem->id;
+            $transaction->created_by = $user->id;
+            $transaction->save();
+
+            return (new TransactionResource($transaction))->response()->setStatusCode(201);
+        });
     }
 
-    public function update($id, TransactionUpdateRequest $request): TransactionResource
+    public function update($id, TransactionUpdateRequest $request, StockUpdateRequest $stockRequest,): TransactionResource
     {
         $user = Auth::user();
-        $transaction = $this->getTransactionById($id);
-        $data = $request->validated();
+        $dataTrx = $request->validated();
+        $dataStock = $stockRequest->validated();
 
-        $transaction->fill($data);
+        return DB::transaction(function () use ($id, $dataTrx, $dataStock, $user) {
+            //update data
+            $transaction = $this->getTransactionById($id);
+            $transaction->fill($dataTrx);
+            $transaction->updated_by = $user->id;
+            $transaction->save();
 
-        $transaction->updated_by = $user->id;
-        $transaction->save();
+            // update stock
+            $stock = $this->getStock($dataStock['stock_id']);
+            $stock->fill($dataStock);
+            $stock->updated_by = $user->id;
+            $stock->save();
 
-        return new TransactionResource($transaction);
+            return new TransactionResource($transaction);
+        });
     }
 
     public function getTransaction($date): TransactionCollection{

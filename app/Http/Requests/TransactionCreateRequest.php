@@ -19,6 +19,8 @@ class TransactionCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_id'   => ['required', 'numeric'],
+            'item_id'       => ['required', 'numeric'],
             'quantity'      => ['required', 'numeric'],
             'description'   => ['nullable', 'max:100'],
             'amount'        => ['required', 'numeric'],

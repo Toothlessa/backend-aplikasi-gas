@@ -6,6 +6,7 @@ use App\Http\Requests\CategoryItemCreateRequest;
 use App\Http\Resources\CategoryItemCreateResource;
 use App\Http\Resources\CategoryItemGetAllCollection;
 use App\Models\CategoryItem;
+use App\Models\MasterItem;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -103,6 +104,15 @@ class CategoryItemController extends Controller
     {
         $user = Auth::user();
         $assetOwner = $this->getCategoryItemById($id);
+
+        $categoryInTrx = MasterItem::where('category_id, $id');
+
+        if($categoryInTrx) {
+            throw new HttpResponseException(response([
+                "errors" => "THIS_CATEGORY_EXISTS_IN_TRANSACTION"
+            ], 400));
+        }
+
         $assetOwner->delete();
 
         return response()->json([
