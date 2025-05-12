@@ -20,6 +20,7 @@ class TransactionGetResource extends JsonResource
             'amount' => $this->amount,
             'total' => $this->total,
             'description' => $this->description,
+            'stock_id' => $this->stock_id,
             'item_id' => $this->item_id,
             'customer_id' => $this->customer_id,
             'customer_name' => $this->customer_name,

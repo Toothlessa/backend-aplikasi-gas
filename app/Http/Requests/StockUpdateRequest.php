@@ -3,10 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StockItemInputRequest extends FormRequest
+class StockUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,15 +22,8 @@ class StockItemInputRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //'item_id' => ['required', 'numeric'],
+            'stock_id' => ['required', 'numeric'],
             'stock' => ['required', 'numeric'], 
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response([
-            "errors" => $validator->getMessageBag()
-        ], 400));
     }
 }

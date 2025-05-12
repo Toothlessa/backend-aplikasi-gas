@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Customer;
 use App\Models\MasterItem;
+use App\Models\StockItem;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -22,7 +23,17 @@ class TransactionSeeder extends Seeder
         $customer = Customer::where('customer_name', 'test')->first();
 
         for($x=0; $x<20; $x++){
+        
+        $stock = StockItem::create([
+            'item_id' => $item->id,
+            'stock' => $x,
+            'cogs' => 16000,
+            'selling_price' => 19000,
+            'created_by' => $user->id,
+        ]);
+        
         Transaction::create([
+            'stock_id' => $stock->id,
             'quantity' => $x,
             'amount' => 19000,
             'total' => 19000 * $x,
@@ -35,8 +46,18 @@ class TransactionSeeder extends Seeder
     }
 
         for($i=0; $i<20; $i++){
+
+            $stock = StockItem::create([
+                'item_id' => $item->id,
+                'stock' => $i,
+                'cogs' => 16000,
+                'selling_price' => 19000,
+                'created_by' => $user->id,
+            ]);
+
             Transaction::create([
                 'quantity' => $i,
+                'stock_id' => $stock->id,
                 'amount' => 19000,
                 'total' => 19000 * $i,
                 'description' => 'Test Tomorrow',
@@ -48,8 +69,18 @@ class TransactionSeeder extends Seeder
         }
 
         for($i=0; $i<20; $i++){
+
+            $stock = StockItem::create([
+                'item_id' => $item->id,
+                'stock' => $i,
+                'cogs' => 16000,
+                'selling_price' => 19000,
+                'created_by' => $user->id,
+            ]);
+            
             Transaction::create([
                 'quantity' => $i,
+                'stock_id' => $stock->id,
                 'amount' => 19000,
                 'total' => 19000 * $i,
                 'description' => 'Test Yesterday',

@@ -55,7 +55,7 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     Route::get('/stockitems/displaystock', [StockItemController::class, 'getDisplayStock']);
     
     /* Transaction Route */
-    Route::post('/transactions/{itemId}/customer/{customerId}', [TransactionController::class, 'create']);
+    Route::post('/transactions', [TransactionController::class, 'create']);
     Route::get('/transactions/today/{date?}', [TransactionController::class, 'getTransaction'])->defaults('date', Carbon::today());
     Route::get('/transactions/outstanding', [TransactionController::class, 'getOutstandingTransaction']);
     /* Chart */
