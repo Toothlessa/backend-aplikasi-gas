@@ -13,10 +13,6 @@ use App\Http\Middleware\ApiAuthMiddleware;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
-
 /* Login Route */
 Route::post('/users', [UserController::class, 'register']);
 Route::post('/users/login', [UserController::class, 'login']);
