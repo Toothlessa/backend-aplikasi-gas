@@ -97,7 +97,8 @@ class TransactionController extends Controller
         $transaction = DB::table('transactions')
             ->join("customers", "customers.id", "customer_id")
             ->selectraw("customer_id, customer_name, sum(quantity) as total")
-            // ->where("item_id", $itemId)
+            ->whereNotLike("customer_name", "%umum%")
+            ->whereNotLike("customer_name", "%aulia%fauziah%")
             ->groupBy("customer_id", "customer_name")
             ->limit(7)
             ->get();
@@ -115,7 +116,7 @@ class TransactionController extends Controller
         $transaction = DB::table('transactions')
             ->join("customers", "customers.id", "customer_id")
             ->join("master_items", "master_items.id", "item_id")
-            ->selectraw("transactions.id, customers.id customer_id, customer_name, 
+            ->selectraw("transactions.id, stock_id, customers.id customer_id, customer_name, 
                                     item_name, description, quantity, amount, total, transactions.created_at")
             ->whereNotIn("description", ["umum", "balancing"])
             ->whereNotLike("description", "%done%")

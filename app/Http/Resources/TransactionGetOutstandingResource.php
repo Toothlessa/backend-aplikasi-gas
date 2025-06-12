@@ -17,6 +17,7 @@ class TransactionGetOutstandingResource extends JsonResource
         return [
             'id' => $this->id,
             'customer_id' => $this->customer_id,
+            'stock_id' => $this->stock_id,
             'customer_name' => $this->customer_name,
             'item_name' => $this->item_name,
             'description' => $this->description,
