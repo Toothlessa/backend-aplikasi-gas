@@ -100,6 +100,7 @@ class TransactionController extends Controller
             ->whereNotLike("customer_name", "%umum%")
             ->whereNotLike("customer_name", "%aulia%fauziah%")
             ->groupBy("customer_id", "customer_name")
+            ->orderByDesc("total")
             ->limit(7)
             ->get();
 
