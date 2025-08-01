@@ -94,15 +94,18 @@ class TransactionController extends Controller
     }
 
     public function getTopSalePerItem() {
-        $transaction = DB::table('transactions')
-            ->join("customers", "customers.id", "customer_id")
-            ->selectraw("customer_id, customer_name, sum(quantity) as total")
-            ->whereNotLike("customer_name", "%umum%")
-            ->whereNotLike("customer_name", "%aulia%fauziah%")
-            ->groupBy("customer_id", "customer_name")
-            ->orderByDesc("total")
-            ->limit(7)
-            ->get();
+    $transaction = DB::table('transactions')
+        ->join("customers", "customers.id", "customer_id")
+        ->selectRaw("customer_id, customer_name, sum(quantity) as total")
+        ->where(function($query) {
+            $query->whereNotLike("customer_name", "umum")
+                  ->whereNotLike("customer_name", "%aulia%fauziah%")
+                  ->whereNotLike("customer_name", "balancing");
+        })
+        ->groupBy("customer_id", "customer_name")
+        ->orderByDesc("total")
+        ->limit(7)
+        ->get();
 
         if(!$transaction){
             throw new HttpResponseException(response()->json([
