@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('assets', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('owner_id')->unsigned()->nullable(false);
-            $table->string("asset_name", 100)->nullable(false)->unique("asset_name_unique");
+            $table->foreignId("owner_id")->constrained("asset_owners");
+            $table->foreignId("item_id")->constrained("master_items");
             $table->integer("quantity")->nullable(false);
             $table->integer("cogs")->nullable(false);
             $table->integer("selling_price")->nullable(false);
@@ -22,7 +22,6 @@ return new class extends Migration
             $table->integer("created_by")->nullable();
             $table->integer("updated_by")->nullable();
             $table->timestamps();
-            $table->foreign("owner_id")->on("asset_owners")->references("id");
         });
     }
 

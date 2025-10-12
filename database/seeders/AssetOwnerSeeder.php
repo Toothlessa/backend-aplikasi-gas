@@ -19,6 +19,7 @@ class AssetOwnerSeeder extends Seeder
         for($i=0; $i<5; $i++) {
             AssetOwner::create([
                 'name' => 'test'.$i,
+                'active_flag' => 'Y',
                 'created_by' => $user->id,
             ]);
 

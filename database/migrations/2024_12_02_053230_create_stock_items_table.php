@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stock_items', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('item_id')->unsigned();
+            $table->foreignId("item_id")->constrained("master_items");
             $table->integer("stock")->nullable(false);
             $table->integer("cogs")->nullable();
             $table->integer("selling_price")->nullable();
@@ -21,7 +21,6 @@ return new class extends Migration
             $table->integer("created_by")->nullable();
             $table->integer("updated_by")->nullable();
             $table->timestamps();
-            $table->foreign("item_id")->on("master_items")->references("id");
 
         });
     }

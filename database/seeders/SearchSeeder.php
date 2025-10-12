@@ -20,6 +20,7 @@ class SearchSeeder extends Seeder
                 'email'=> 'test' .$i. '@gmail.com',
                 'address'=> 'Jl. Ledeng Sindang Sari ' .$i,
                 'phone' => '081'. $i,
+                'active_flag' => 'Y',
             ]);
         }
     }

@@ -5,8 +5,7 @@ namespace Tests\Feature;
 use App\Models\AssetOwner;
 use Database\Seeders\AssetOwnerSeeder;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -24,7 +23,8 @@ class AssetOwnerTest extends TestCase
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-                'name' => 'renan',
+                'name'        => 'renan',
+                'active_flag' => 'Y'
                 ]
             ]);
     }
@@ -40,7 +40,7 @@ class AssetOwnerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-                "errors" => "NAME_EXISTS"
+                "errors" => "OWNER_NAME_EXISTS"
             ]);
     }
 
@@ -56,6 +56,7 @@ class AssetOwnerTest extends TestCase
         ->assertJson([
                 "data" => [
                     'name' => 'renan',
+                     'active_flag' => 'Y'
                 ]
             ]);
     }
@@ -70,7 +71,7 @@ class AssetOwnerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(404)
         ->assertJson([
-                "errors" => "NOT_FOUND"
+                "errors" => "OWNER_NOT_FOUND"
             ]);
     }
 
@@ -99,37 +100,47 @@ class AssetOwnerTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'name' => 'Barbie'
+                'name' => 'Barbie',
+                 'active_flag' => 'Y'
             ]
             ]);
     }
 
-    public function testDeleteSuccess() {
+    public function testInactiveOwner() 
+    {
+        $this->testCreateSuccess();
 
-        $this->seed([UserSeeder::class, AssetOwnerSeeder::class]);
-
-        $assetOwner = AssetOwner::where('name', 'test0')->first();
-        $this->delete('/api/assetowners/'.$assetOwner->id, [], 
+        $assetOwner = AssetOwner::query()->first();
+        $response = $this->patch('/api/assetowners/inactive/'.$assetOwner->id, [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->assertJson([
-            'data' => true
+            'data' => [
+                'active_flag' => 'N',
+            ]
             ]);
+        // ambil hasil inactive_date
+        $inactiveDate = Carbon::parse($response->json('data.inactive_date'))->format('d-m-y');
+        // bikin expected value
+        $expected = Carbon::now()->format('d-m-y');
+        // bandingkan hasil
+        $this->assertEquals($expected, $inactiveDate);
     }
 
-    public function testInactiveOwner() {
-
-        $this->seed([UserSeeder::class, AssetOwnerSeeder::class]);
+     public function testActivateOwner() {
+        $this->testInactiveOwner();
 
         $assetOwner = AssetOwner::query()->first();
+
         $this->patch('/api/assetowners/inactive/'.$assetOwner->id, [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'active_flag' => 'N'
+                'active_flag' => 'Y',
+                'inactive_date' => null,
             ]
             ]);
     }

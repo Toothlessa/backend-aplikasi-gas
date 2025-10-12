@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Asset;
 use App\Models\AssetOwner;
+use App\Models\MasterItem;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,10 +16,11 @@ class AssetSeeder extends Seeder
     public function run(): void
     {
         $assetOwner = AssetOwner::query()->latest('id')->first();
+        $masteritem = MasterItem::query()->latest('id')->first();
 
         Asset::create([
             'owner_id' => $assetOwner->id,
-            'asset_name' => 'GAS LPG 3KG KOSONG',
+            'item_id' => $masteritem->id,
             'quantity' => 1000,
             'cogs' => 14000000,
             'selling_price' => 16000000,
@@ -27,7 +29,7 @@ class AssetSeeder extends Seeder
 
         Asset::create([
             'owner_id' => $assetOwner->id,
-            'asset_name' => 'Gas 3 Kg',
+            'item_id' => $masteritem->id,
             'quantity' => 100,
             'cogs' => 14000000,
             'selling_price' => 16000000,
@@ -37,7 +39,7 @@ class AssetSeeder extends Seeder
         $assetOwner = AssetOwner::query()->first();
         Asset::create([
             'owner_id' => $assetOwner->id,
-            'asset_name' => 'Gas 3 Kg',
+            'item_id' => $masteritem->id,
             'quantity' => 100,
             'cogs' => 14000000,
             'selling_price' => 16000000,

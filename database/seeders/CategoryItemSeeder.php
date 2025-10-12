@@ -11,14 +11,17 @@ class CategoryItemSeeder extends Seeder
 
     public function run(): void
     {
-        CategoryItem::create([
-            'name' => 'Bahan Pokok',
-        ]);
         
         for($x=0; $x<5; $x++){
             CategoryItem::create([
                 'name' => 'Bahan Pokok'.$x,
+                'prefix' => 'BP'.$x,
             ]);
         }
+
+        CategoryItem::create( [
+            'name' => 'Alat Tulis',
+            'prefix' => 'AT',
+        ]);
     }
 }

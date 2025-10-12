@@ -17,6 +17,7 @@ class CustomerSeeder extends Seeder
         $user = User::query()->first();
         Customer::create([
             'customer_name' => 'test',
+            'customer_type' => 'RT',
             'nik' => '3271981923812912',
             'email' => 'test@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari',
@@ -26,6 +27,7 @@ class CustomerSeeder extends Seeder
 
         Customer::create([
             'customer_name' => 'renan',
+            'customer_type' => 'RT',
             'nik' => '32131239129',
             'email' => 'renan@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari',

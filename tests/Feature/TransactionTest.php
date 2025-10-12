@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\MasterItem;
-use App\Models\StockItem;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Database\Seeders\CategoryItemSeeder;
@@ -13,8 +12,6 @@ use Database\Seeders\MasterItemSeeder;
 use Database\Seeders\StockItemSeeder;
 use Database\Seeders\TransactionSeeder;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -118,9 +115,8 @@ class TransactionTest extends TestCase
             [UserSeeder::class, CategoryItemSeeder::class, 
             MasterItemSeeder::class, CustomerSeeder::class, TransactionSeeder::class,
         ]);
-        //2025-01-22 00:00:00
 
-        $response = $this->get('/api/transactions/today', 
+        $response = $this->get('/api/transactions/date/', 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -135,10 +131,9 @@ class TransactionTest extends TestCase
             [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class,
                     CustomerSeeder::class, TransactionSeeder::class,
         ]);
-        //2025-01-22 00:00:00
         $date=Carbon::tomorrow();
 
-        $response = $this->get('/api/transactions/today/'.'2025-01-23',//.$date, 
+        $response = $this->get('/api/transactions/date/'.'2025-01-23',//.$date, 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -164,14 +159,14 @@ class TransactionTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
 
-    public function testGetSalesPerWeek() {
+    public function testGetDailySale() {
         $this->seed(
             [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class, 
                     CustomerSeeder::class, TransactionSeeder::class,
         ]);
         $item = MasterItem::where('item_name', 'test')->first();
 
-        $response = $this->get('api/transactions/salesperweek',
+        $response = $this->get('api/transactions/dailysale',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -203,8 +198,8 @@ class TransactionTest extends TestCase
         $customer = $transaction->customer;
 
         self::assertNotNull($customer);
-        self::assertEquals("Rizki Zulfianty", $customer->customer_name);
-        self::assertEquals("32710918929101", $customer->nik);
+        self::assertEquals("test", $customer->customer_name);
+        self::assertEquals("3271981923812912", $customer->nik);
     }
 
 }

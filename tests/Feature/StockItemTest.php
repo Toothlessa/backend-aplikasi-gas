@@ -29,14 +29,14 @@ class StockItemTest extends TestCase
         $masterItem = MasterItem::query()->first();
 
         $this->post('/api/stockitems/' .($masterItem->id), [
-            'stock' => 100,
+            'stock' => 300,
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 201)
         ->assertJson([
             'data' => [
-                'stock' => 100,
+                'stock' => 300,
             ]
         ]);
     }
@@ -93,7 +93,7 @@ class StockItemTest extends TestCase
     public function testGetDetailStock()
     {
         $this->testInputStockSuccess();
-        $masterItem = MasterItem::where("item_name", "test")->first();
+        $masterItem = MasterItem::query()->first();
 
         $response = $this->get('api/stockitems/detailstock/'.$masterItem->id, 
         [
@@ -108,8 +108,12 @@ class StockItemTest extends TestCase
 
         $this->seed([UserSeeder::class, CategoryItemSeeder::class,  AssetOwnerSeeder::class, 
                             MasterItemSeeder::class, StockItemSeeder::class, AssetSeeder::class]);
+        
+        $filledGas = MasterItem::where('item_name', 'GAS LPG 3KG')->first();
 
-        $response = $this->get('api/stockitems/displaystock', 
+        $emptyGas  = MasterItem::where('item_name', 'GAS LPG 3KG KOSONG')->first();
+
+        $response = $this->get('api/stockitems/displaystock/'.$filledGas->id.'/'.$emptyGas->id, 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)

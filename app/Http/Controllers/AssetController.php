@@ -2,125 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AssetCreateRequest;
-use App\Http\Resources\AssetCreateResource;
-use App\Http\Resources\AssetGetDetailCollection;
-use App\Http\Resources\AssetGetSummaryCollection;
-use App\Models\Asset;
-use Carbon\Carbon;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Http\Requests\Asset\AssetCreateRequest;
+use App\Http\Resources\Asset\AssetCreateResource;
+use App\Http\Resources\Asset\AssetGetDetailCollection;
+use App\Http\Resources\Asset\AssetGetSummaryCollection;
+use App\Services\AssetService;
+use App\Services\MasterItemService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class AssetController extends Controller
 {
 
-    public function checkAssetNameExists(string $assetName)
+    protected $service;
+    protected $masterItemService;
+
+    public function __construct(AssetService $service,
+                                 MasterItemService $masterItemService) 
     {
-        if(Asset::where("asset_name", $assetName)->count()==1){
-            throw new HttpResponseException(response([
-                "errors" => "ASSET_NAME_EXISTS"
-            ], 400));
-        }
+        $this->service = $service;
+        $this->masterItemService = $masterItemService;
     }
 
-    public function querySumAssetOwner() {
-
-        $sumAssetOwner = DB::table('assets')
-                            ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
-                            ->selectRaw('owner_id, asset_owners.name, asset_name, 
-                                        SUM(quantity) AS quantity, SUM(cogs) AS cogs, SUM(selling_price) AS selling_price')
-                            ->groupByRaw('owner_id, asset_owners.name, asset_name')
-                            ->get();
-        
-        if(!$sumAssetOwner) {
-            throw new HttpResponseException(response([
-                "errors" => "NOT_FOUND"
-            ], 404));
-        }
-
-        return $sumAssetOwner;
-    }
-
-    public function queryDetailAsset($ownerId, $assetName) {
-
-        $detailAsset = DB::table('assets')
-                        ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
-                        -> select('assets.id', 'owner_id', 'asset_owners.name', 'asset_name', 
-                                   'description', 'quantity', 'cogs', 'selling_price', 'assets.created_at')
-                        ->where('owner_id', $ownerId)
-                        ->where('asset_name', $assetName)
-                        ->orderBy('assets.created_at')
-                        ->get();
-
-        if(!$detailAsset) {
-            throw new HttpResponseException(response([
-                "errors" => "NOT_FOUND"
-            ], 404));
-        }
-
-        return $detailAsset;
-    }
-
-    public function create(AssetCreateRequest $request): JsonResponse
+    public function create(AssetCreateRequest $request)
     {
-        $user = Auth::user();      
-        $data = $request->validated();  
-        $asset = new Asset($data);
+        $user = Auth::user();
+        $data = $request->validated();
 
-        $asset->cogs = $data['cogs'] * $data['quantity'];
-        $asset->selling_price = $data['selling_price'] * $data['quantity'];
-        $asset->created_by = $user->id;
-        $asset->save();
+        $asset = $this->service->create($data, $user);
 
         return (new AssetCreateResource($asset))->response()->setStatusCode(201);
     }
 
-    public function getAssetById($id):Asset {
-        $user = Auth::user();
-
-        $asset = Asset::find($id);
-
-        return $asset;
-    }
-    public function getSumAssetOwner():AssetGetSummaryCollection {
-
-        $user = Auth::user();
-
-        $sumAssetOwner = $this->querySumAssetOwner();
-
-        return new AssetGetSummaryCollection($sumAssetOwner);
-    }
-
-    public function getDetailAsset($ownerId, $assetName):AssetGetDetailCollection {
-
-        $user = Auth::user();
-
-        $detailAsset = $this->queryDetailAsset($ownerId, $assetName);
-
-        return new AssetGetDetailCollection($detailAsset);
-    }
-
-    public function update(AssetCreateRequest $request, $id): AssetCreateResource {
-
+    public function update(AssetCreateRequest $request, $id)
+    {
         $user = Auth::user();
         $data = $request->validated();
-        
-        $asset = $this->getAssetById($id);
-        $asset->fill($data);
 
-        if($data['asset_name'] != $asset->name) {
-            $this->checkAssetNameExists($data['asset_name']);
-        }
+        $asset = $this->service->update($id, $data, $user);
+        return new AssetCreateResource($asset);;
+    }
 
-        $asset->cogs = $data['cogs'] * $data['quantity'];
-        $asset->selling_price = $data['selling_price'] * $data['quantity'];
-        $asset->updated_by = $user->id;
-        $asset->updated_at = Carbon::now();
-        $asset->save();
+    public function getSumAssetOwner()
+    {
+        Auth::user();
+        $asset = $this->service->summaryAssetOwner();
 
-        return new AssetCreateResource($asset);
+        return new AssetGetSummaryCollection($asset);
+    }
+
+    public function getDetailAsset($ownerId, $item_id):AssetGetDetailCollection {
+
+        Auth::user();
+
+        $detailAsset = $this->service->getDetailAsset($ownerId, $item_id);
+
+        return new AssetGetDetailCollection($detailAsset);
     }
 }

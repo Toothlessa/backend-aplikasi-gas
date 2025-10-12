@@ -16,6 +16,7 @@ class UserTest extends TestCase
             'username' => 'khannedy',
             'password' => 'rahasia',
             'email' => 'Eko@pzn.com',
+            'phone' => '12312321',
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
@@ -26,7 +27,7 @@ class UserTest extends TestCase
 
             $user = User::where('username', 'khannedy')->first();
             self::assertNotNull($user->token);
-            self::assertEquals($user->expiresIn, 10000);
+            self::assertEquals($user->expiresIn, 100000);
     }
 
     public function testRegisterFailed()
@@ -53,9 +54,7 @@ class UserTest extends TestCase
             'fullname' => 'Eko Kurniawan Khannedy'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                    'USERNAME_EXISTS'
-            ]
+            "errors" => 'USERNAME_EXISTS'
             ]);        
     }
 
@@ -69,9 +68,7 @@ class UserTest extends TestCase
             'email' => 'Eko@pzn.com',
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => [
-                    'EMAIL_EXISTS'
-            ]
+            "errors" => 'EMAIL_EXISTS'
             ]);        
     }
 
@@ -119,9 +116,7 @@ class UserTest extends TestCase
             'password' => 'test',
         ])->assertStatus(401)
         ->assertJson([
-            "errors" => [
-                        "EMAIL_PASSWORD_WRONG"
-                ]
+            "errors" => "EMAIL_PASSWORD_WRONG"
             ]);
     }
 
@@ -165,7 +160,10 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test0')->first(); 
 
         $this->patch('/api/users/current', [
-             'password' => 'baru'
+             'username' => $oldUser->username,
+             'password' => 'baru',
+             'email' => $oldUser->email,
+             'phone' => 123412,
         ],
         [
             'Authorization' => 'test'
@@ -187,16 +185,15 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test0')->first(); 
 
         $this->patch('/api/users/current', [
-             'username' => 'test100'
+             'username' => 'test100',
+              'password' => 'baru',
         ],
         [
             'Authorization' => 'test'
         ])
         ->assertStatus(400)
         ->assertJson([
-            "errors"=> [
-                    "USERNAME_EXISTS"
-                ]
+            "errors"=> "USERNAME_EXISTS"
         ]);
     }
 
@@ -206,16 +203,16 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test')->first(); 
 
         $this->patch('/api/users/current', [
-             'email' => 'test1@pzn.com'
+             'username' => 'Kafka',
+             'email' => 'test1@pzn.com',
+             'password' => 'baru',
         ],
         [
             'Authorization' => 'test'
         ])
         ->assertStatus(400)
         ->assertJson([
-            "errors"=> [
-                    "EMAIL_EXISTS"
-                ]
+            "errors"=> "EMAIL_EXISTS"
         ]);
     }
 
@@ -226,7 +223,8 @@ class UserTest extends TestCase
         $this->patch('/api/users/current', [
             'username' => 'test1',
             'email' => 'test1@hotmail.com',
-            'passowrd' => 'hadir',
+            'password' => 'hadir',
+            'phone' => 123213123,
             'token' => 'test',
             'expiresIn' => NULL,
         ],
@@ -251,7 +249,7 @@ class UserTest extends TestCase
         $this->seed([UserSeeder::class]);   
 
         $this->patch('/api/users/current', [
-             'fullname' => 'sadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadssadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsad'
+             'username' => 'sadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadssadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsad'
         ],
         [
             'Authorization' => 'test'
@@ -259,8 +257,8 @@ class UserTest extends TestCase
         ->assertStatus(400)
         ->assertJson([
             'errors' => [
-                'fullname' => [
-                    'The fullname field must not be greater than 100 characters.'
+                'username' => [
+                    'The username field must not be greater than 100 characters.'
                 ]
             ]
         ]);

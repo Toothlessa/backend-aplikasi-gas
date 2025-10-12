@@ -8,19 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Debt extends Model
 {
     protected $table = "debts";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
     protected $fillable = [
         'customer_id',
         'description',
         'amount_pay',
         'total',
+        'created_by',
+        'updated_by',
     ];
 
-    public function customers(): BelongsTo
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, "customer_id", "id");
     }

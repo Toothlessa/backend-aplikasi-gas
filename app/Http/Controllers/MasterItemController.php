@@ -2,67 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\MasterItemCreateRequest;
-use App\Http\Requests\MasterItemUpdateRequest;
-use App\Http\Resources\MasterItemCollection;
-use App\Http\Resources\MasterItemResource;
-use App\Models\CategoryItem;
-use App\Models\MasterItem;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\MasterItem\MasterItemCreateRequest;
+use App\Http\Requests\MasterItem\MasterItemUpdateRequest;
+use App\Http\Resources\MasterItem\MasterItemCollection;
+use App\Http\Resources\MasterItem\MasterItemResource;
+use App\Services\MasterItemService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MasterItemController extends Controller
 {
-    public function getItem($id): MasterItem
+    protected $service;
+
+    public function __construct(MasterItemService $service)
     {
-        $masterItem = MasterItem::find($id);
-        if(!$masterItem){
-            throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-
-        return $masterItem;
-    }
-
-    public function checkItemExists(string $itemName)
-    {
-        if(MasterItem::where("item_name", $itemName)->count()==1){
-            throw new HttpResponseException(response([
-                "errors"=> "ITEM_NAME_IS_REGISTERED"
-            ], 400));
-        }
-    } 
-
-    public function checkItemCodeExists(string $itemCode)
-    {
-        if(MasterItem::where("item_code", $itemCode)->count()==1){
-            throw new HttpResponseException(response([
-                "errors"=> "ITEM_CODE_IS_REGISTERED"
-            ], 400));
-        }
-    } 
-    public function generateItemCodeSeq(string $categoryId): string
-    {
-        $lastSeq = MasterItem::where("category_id", $categoryId)->orderByDesc("id")->first();
-        $categoryItem = CategoryItem::find($categoryId);
-
-        if($lastSeq) {
-            $getPrefix = substr($lastSeq->item_code, 0, 2);
-            $getSubfix = sprintf('%02d', (int)substr($lastSeq->item_code, 2, 2) + 1);
-            
-        $itemCode = $getPrefix . $getSubfix;
-
-        } elseif ($categoryItem->name == "Bahan Pokok"){
-            
-            $itemCode = "BP01";
-        }
-
-        return $itemCode;
+        $this->service = $service;
     }
 
     public function create(MasterItemCreateRequest $request): JsonResponse
@@ -70,125 +24,61 @@ class MasterItemController extends Controller
         $user = Auth::user();
         $data = $request->validated();
 
-        $this->checkItemExists($data['item_name']);
-        $getItemCode = $this->generateItemCodeSeq($data['category_id']);
-
-        $masterItem = new MasterItem($data);
-        $masterItem->item_code = $getItemCode;
-        $masterItem->created_by = $user->id;
-        $masterItem->save();
+        $masterItem = $this->service->create($data, $user);
 
         return (new MasterItemResource($masterItem))->response()->setStatusCode(201);
     }
-    public function get($id): MasterItemResource
+
+    public function update($id, MasterItemUpdateRequest $request)
     {
         $user = Auth::user();
-        $masterItem = $this->getItem($id);
-
-        return new MasterItemResource($masterItem);
-    }
-
-    public function getAll(): MasterItemCollection
-    {
-        $user = Auth::user();
-
-        $masterItem = MasterItem::query()->orderByDesc('active_flag')
-                                         ->orderBy('item_name')
-                                         ->get();
-
-        return new MasterItemCollection($masterItem);
-    }
-
-    public function getItemByItemType($itemType): MasterItemCollection
-    {
-        $user = Auth::user();
-
-        $masterItem = MasterItem::query()->where('item_type', $itemType)
-                                         ->orderByDesc('active_flag')
-                                         ->orderBy('item_name')
-                                         ->get();
-
-        return new MasterItemCollection($masterItem);
-    }
-
-    public function update($id, MasterItemUpdateRequest $request): MasterItemResource
-    {
-        $user = Auth::user();
-        $masterItem = $this->getItem($id);
         $data = $request->validated();
-        
-        if($data['item_name'] != $masterItem->item_name) {
-            $this->checkItemExists($data['item_name']);
-        }
 
-        if($data['item_code'] != $masterItem->item_code) {
-            $this->checkItemCodeExists($data['item_code']);
-        }
+        $masterItem = $this->service->update($id, $data, $user);
 
-        $masterItem->fill($data);
-
-        $masterItem->updated_by = $user->id;
-        $masterItem->save();
-
-        return new MasterItemResource($masterItem);
+        return (new MasterItemResource($masterItem))->response()->setStatusCode(200);
     }
 
-    public function delete($id): JsonResponse
+    public function findById($id)
     {
-        $user = Auth::user();
-        $masterItem = $this->getItem($id);
-        $masterItem->delete();
+        Auth::user();
+        $masterItem = $this->service->findById($id);
 
-        return response()->json([
-            'data' => true
-        ])->setStatusCode(200);
+       return (new MasterItemResource($masterItem))->response()->setStatusCode(200);
     }
 
-    public function search(Request $request):MasterItemCollection
+    public function getAll()
     {
-        $user = Auth::user();
-        $page = $request->get('page',1);
-        $size = $request->get('size',10);
+        Auth::user();
 
-        $masterItem = MasterItem::query();
+        $masterItem = $this->service->findAll();
 
-        $masterItem = $masterItem->where(function (Builder $builder) use ($request)
-        {
-            $itemName = $request->input('item_name');
-            if($itemName){
-                $builder->where('item_name','like','%'.$itemName.'%');
-            }
+        return (new MasterItemCollection($masterItem))->response()->setStatusCode(200);
+    }
 
-            $itemCode = $request->input('item_code');
-            if($itemCode){
-                $builder->where('item_code','like','%'.$itemCode.'%');
-            }
+    public function getItemByItemType($itemType)
+    {
+        Auth::user();
 
-            // $category = $request->input('category');
-            // if($category){
-            //     $builder->where('category','like','%'.$category.'%');
-            // }
-        });
+        $masterItem = $this->service->getItemByItemType($itemType);
 
-        $masterItem = $masterItem->paginate(perPage: $size, page: $page);
+         return (new MasterItemCollection($masterItem))->response()->setStatusCode(200);
+    }
 
-        return new MasterItemCollection($masterItem);
+    public function getItemByFlagStatus($flagStatus)
+    {
+        Auth::user();
+
+        $masterItem = $this->service->getItemByFlagStatus($flagStatus);
+
+        return (new MasterItemCollection($masterItem))->response()->setStatusCode(200);
     }
 
     public function inactiveItem($id): MasterItemResource {
         $user = Auth::user();
-        $masterItem = $this->getItem($id);
-
-        if($masterItem->active_flag == 'Y') {
-            $masterItem->active_flag = 'N';
-        } else {
-            $masterItem->active_flag = 'Y';
-        }
-
-        $masterItem->inactive_date = Carbon::now();
-        $masterItem->updated_by = $user->id;
-        $masterItem->save();
-
+        
+        $masterItem = $this->service->inactiveItem($id, $user);
+    
         return new MasterItemResource($masterItem);
     }
 }

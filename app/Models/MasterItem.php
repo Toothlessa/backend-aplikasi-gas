@@ -22,6 +22,8 @@ class MasterItem extends Model
         'category_id',
         'cost_of_goods_sold',
         'selling_price',
+        'created_by',
+        'updated_by',
     ];
 
     public function transaction(): HasMany
@@ -33,13 +35,15 @@ class MasterItem extends Model
     {
         return $this->hasMany(StockItem::class, "item_id", "id");
     }
-    // public function created_by(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class,'created_by', 'id');
-    // }
 
-    // public function updatedBy(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class,'updated_by', 'id');
-    // }
+    public function assets(): HasMany
+    {
+        return $this->hasMany(Asset::class, 'item_id', 'id');
+    }
+
+    public function categoryItem(): BelongsTo
+    {
+        return $this->belongsTo(CategoryItem::class, 'category_id', 'id');
+    }
+
 }

@@ -10,17 +10,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Transaction extends Model
 {
     protected $table = "transactions";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
     protected $fillable = [
+        'id',
+        'trx_number',
+        'item_id',
         'customer_id',
+        'stock_id',
         'quantity',
         'description',
         'amount',
         'total',
+        'created_by',
+        'updated_by',
     ];
 
     public function masterItem(): BelongsTo
@@ -31,5 +37,10 @@ class Transaction extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, "customer_id", "id");
+    }
+
+    public function stockItem()
+    {
+        return $this->belongsTo(StockItem::class, 'stock_id');
     }
 }

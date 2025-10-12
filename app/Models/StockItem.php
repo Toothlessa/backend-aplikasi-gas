@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class StockItem extends Model
 {
@@ -17,11 +16,13 @@ class StockItem extends Model
     protected $fillable = [
         'item_id',
         'stock',
+        'created_by',
+        'updated_by',
     ];
 
-    public function transaction(): HasOne
+    public function transaction()
     {
-        return $this->hasOne(Transaction::class, "stock_id", "id");
+        return $this->hasMany(Transaction::class, 'stock_id');
     }
 
     public function masteritem(): BelongsTo

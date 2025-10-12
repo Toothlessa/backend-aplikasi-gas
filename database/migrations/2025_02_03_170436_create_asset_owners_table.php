@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('asset_owners', function (Blueprint $table) {
             $table->id();
-            $table->string('name', length: 100)->nullable();
+            $table->string('name', length: 100)->nullable()->unique("name_asset_owner_unique");
+            $table->enum('active_flag', ['Y', 'N'])->default('Y');
+            $table->timestamp("inactive_date")->nullable();
             $table->integer("created_by")->nullable();
             $table->integer("updated_by")->nullable();
             $table->timestamps();

@@ -2,76 +2,50 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserLoginRequest;
+use App\Services\UserService;
 use Illuminate\Http\Request;
-use App\Http\Requests\UserRegisterRequest;
-use App\Http\Requests\UserUpdateRequest;
-use App\Http\Resources\UserResource;
-use App\Models\User;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\User\UserRegisterRequest;
+use App\Http\Requests\User\UserUpdateRequest;
+use App\Http\Requests\User\UserLoginRequest;
+use App\Http\Resources\User\UserResource;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    public function checkUsernameExists(string $userName)
-    {
-        if(User::where("username", $userName)->count()==1){
-            throw new HttpResponseException(response([
-                "errors"=> [
-                    "USERNAME_EXISTS"
-                ]
-            ], 400));
-        }
+    protected $service;
+
+    public function __construct(UserService $service) {
+        $this->service = $service;
     }
 
-    public function checkEmailExists(string $email)
-    {
-        if(User::where("email", $email)->count()==1){
-            throw new HttpResponseException(response([
-                "errors"=> [
-                    "EMAIL_EXISTS"
-                ]
-            ], 400));
-        }
-    }
-
-    public function register(UserRegisterRequest $request): JsonResponse
+    public function register(UserRegisterRequest $request)
     {
         $data = $request->validated();
-        $this->checkUsernameExists($data["username"]);
-        $this->checkEmailExists($data["email"]);
 
-        $user = new User($data);
-        $user->password = Hash::make($data['password']);
-        $user->token = Str::uuid()->toString();
-        $user->expiresIn = 10000;
-        $user->save();
+        $user = $this->service->register($data);
 
         return (new UserResource($user))->response()->setStatusCode(201);
         
     }
 
-    public function login(UserLoginRequest $request): UserResource
+    public function update(UserUpdateRequest $request)
+    {
+        Auth::user();
+        $data = $request->validated();
+
+        $user = $this->service->update($data);
+
+        return (new UserResource($user))->response()->setStatusCode(200);
+    }
+
+    public function login(UserLoginRequest $request)
     {
         $data = $request->validated();
 
-        $user = User::where('email', $data['email'])->first();
-        if(!$user || !Hash::check($data['password'], $user->password)){
-            throw new HttpResponseException(response([
-                "errors" => [
-                        "EMAIL_PASSWORD_WRONG"
-                ]], 401));
-        }
+        $user = $this->service->login($data);
 
-        $user->token = Str::uuid()->toString();
-        $user->expiresIn = 10000;
-        $user->save();
-
-        return new UserResource($user);
+        return (new UserResource($user))->response()->setStatusCode(200);
     }
 
     public function get(Request $request): UserResource
@@ -80,66 +54,9 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    public function update(UserUpdateRequest $request): UserResource 
-    {
-        $data = $request->validated();
-        $user = Auth::user();
-
-        if(isset($data['username'])){
-            if($data['username'] != $user->username){
-                $this->checkUsernameExists($data['username']);
-            }
-            $user->username = $data['username'];    
-        }
-
-        if(isset($data['password'])){
-            $user->password = Hash::make($data['password']);
-        }    
-        
-        if(isset($data['fullname'])){
-            $user->fullname = $data['fullname'];
-        }
-
-        if(isset($data['email'])){
-            if($data['email'] != $user->email){
-                $this->checkEmailExists($data['email']);
-            }
-            $user->email = $data['email'];
-        }
-
-        if(isset($data['phone'])){
-            $user->phone = $data['phone'];
-        }
-        
-        if(isset($data['street'])){
-            $user->street = $data['street'];
-        }
-
-        if(isset($data['city'])){
-            $user->city = $data['city'];
-        }
-
-        if(isset($data['province'])){
-            $user->province = $data['province'];
-        }
-
-        if(isset( $data['postal_code'])){
-            $user->postal_code = $data['postal_code'];
-        }
-
-        if(isset( $data['country'])){
-            $user->country = $data['country'];
-        }
-        
-        $user->save();
-        return new UserResource($user);
-    }
-
     public function logout(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $user->token = null;
-        $user->save();
+        $this->service->logout();
 
         return response()->json([
             "data" => true

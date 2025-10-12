@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CategoryItem;
 use Database\Seeders\CategoryItemSeeder;
+use Database\Seeders\MasterItemSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -17,14 +18,16 @@ class CategoryItemTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         $this->post('/api/categoryitems', [
-            'name' => 'Bahan Mentah',
+            'name' => 'Bahan Pokok',
+            'prefix' => 'BP',
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-                'name' => 'Bahan Mentah',
+                'name' => 'Bahan Pokok',
+                'prefix' => 'BP',
                 ]
             ]);
     }
@@ -35,6 +38,7 @@ class CategoryItemTest extends TestCase
 
         $this->post('/api/categoryitems', [
             'name' => 'Bahan Pokok',
+            'prefix' => 'BP',
         ],
         [
             'Authorization' => 'test'
@@ -42,6 +46,22 @@ class CategoryItemTest extends TestCase
         ->assertJson([
                 "errors" => "NAME_EXISTS"
             ]);
+    }
+
+    public function testCreatePrefixExists()
+    {
+        $this->testCreateSuccess();
+
+        $this->post('/api/categoryitems', [
+            'name' => 'Bahan Peralatan',
+            'prefix' => 'BP',
+        ],
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(400)
+        ->assertJson([
+            'errors' => 'PREFIX_EXISTS',
+        ]);
     }
 
     public function testGetCategorySuccess()
@@ -65,12 +85,12 @@ class CategoryItemTest extends TestCase
         $this->testCreateSuccess();
 
         $categoryItem = CategoryItem::query()->first();
-        $this->get('/api/categoryitems/'.$categoryItem->id+100,
+        $this->get('/api/categoryitems/'.($categoryItem->id + 100),
         [
             'Authorization' => 'test'
         ])->assertStatus(404)
         ->assertJson([
-                "errors" => "NOT_FOUND"
+                "errors" => "CATEGORY_ITEM_NOT_FOUND"
             ]);
     }
 
@@ -107,28 +127,42 @@ class CategoryItemTest extends TestCase
         $categoryItem = CategoryItem::query()->first();
         $this->patch('/api/categoryitems/'.$categoryItem->id, [
             "name" => 'Barbie',
+            'prefix' => 'BB',
         ], [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'name' => 'Barbie'
+                'name' => 'Barbie',
+                'prefix' => 'BB',
             ]
             ]);
     }
 
+    
+    //this function is inactive
     public function testDeleteFailed() {
-
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
-
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
         $categoryItem = CategoryItem::query()->first();
         $this->delete('/api/categoryitems/'.$categoryItem->id, [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => "THIS_CATEGORY_EXISTS_IN_TRANSACTION"
+            "errors" => "CATEGORY_EXIST_IN_ITEMS"
             ]);
+    }
+
+    public function testDeleteSuccess() {
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
+
+        $categoryItem = CategoryItem::latest('id')->first();
+        $this->delete('/api/categoryitems/'.$categoryItem->id, [],
+        ['Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            "data" => true
+        ]);
     }
 
     public function testInactiveCategory() {
@@ -143,6 +177,21 @@ class CategoryItemTest extends TestCase
         ->assertJson([
             'data' => [
                 'active_flag' => 'N'
+            ]
+            ]);
+    }
+
+    public function testActivateCategory() {
+        $this->testInactiveCategory();
+
+        $categoryItem = CategoryItem::query()->first();
+        $this->patch('/api/categoryitems/inactive/'.$categoryItem->id,[],
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'active_flag' => 'Y'
             ]
             ]);
     }

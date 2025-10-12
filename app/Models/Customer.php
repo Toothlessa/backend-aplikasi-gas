@@ -10,18 +10,22 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Customer extends Model
 {
     protected $table = "customers";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
     protected $fillable = [
         'customer_name',
-        'type',
+        'customer_type',
         'nik',
         'email',
         'address',
         'phone',
+        'active_flag',
+        'inactive_date',
+        'created_by',
+        'updated_by',
     ];
 
     public function transaction(): HasMany

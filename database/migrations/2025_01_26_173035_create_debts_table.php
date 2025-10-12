@@ -13,14 +13,13 @@ return new class extends Migration
     {
         Schema::create('debts', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('customer_id')->unsigned();
+            $table->foreignId("customer_id")->constrained("customers");
             $table->string("description", 100)->nullable();
             $table->integer("amount_pay")->nullable();
             $table->integer("total")->nullable();
             $table->integer("created_by")->nullable();
             $table->integer("updated_by")->nullable();
             $table->timestamps();
-            $table->foreign("customer_id")->on("customers")->references("id");
         });
     }
 

@@ -17,16 +17,13 @@ return new class extends Migration
             $table->integer("quantity");
             $table->integer("amount");
             $table->integer("total");
-            $table->string("description", 100);
-            $table->bigInteger('item_id')->unsigned();
-            // $table->bigInteger('stock_id')->unsigned();
-            $table->bigInteger('customer_id')->unsigned();
+            $table->string("description", 100)->nullable();
+            $table->foreignId("item_id")->constrained("master_items");
+            $table->foreignId("stock_id")->constrained("stock_items");
+            $table->foreignId("customer_id")->constrained("customers");
             $table->integer("created_by")->nullable();
             $table->integer("updated_by")->nullable();
             $table->timestamps();
-            $table->foreign("item_id")->on("master_items")->references("id");
-            // $table->foreign("stock_id")->on("stock_items")->references("id");
-            $table->foreign("customer_id")->on("customers")->references("id");
         });
     }
 

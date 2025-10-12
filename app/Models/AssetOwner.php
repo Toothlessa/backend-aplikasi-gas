@@ -8,14 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AssetOwner extends Model
 {
     protected $table = "asset_owners";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
     protected $fillable = [
-        // 'id',
         'name',
+        'active_flag',
+        'inactive_date',
+        'created_by',
+        'updated_by',
     ];
 
     public function assets(): HasMany

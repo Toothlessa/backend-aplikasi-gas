@@ -2,244 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StockItemInputRequest;
-use App\Http\Requests\StockUpdateRequest;
-use App\Http\Requests\TransactionCreateRequest;
-use App\Http\Requests\TransactionUpdateRequest;
-use App\Http\Resources\TransactionCollection;
-use App\Http\Resources\TransactionGetOutstandingCollection;
-use App\Http\Resources\TransactionGetResource;
-use App\Http\Resources\TransactionResource;
-use App\Models\Customer;
-use App\Models\MasterItem;
-use App\Models\StockItem;
-use App\Models\Transaction;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\StockItem\StockItemInputRequest;
+use App\Http\Requests\StockItem\StockUpdateRequest;
+use App\Http\Requests\Transaction\TransactionCreateRequest;
+use App\Http\Requests\Transaction\TransactionUpdateRequest;
+use App\Http\Resources\Transaction\TransactionCollection;
+use App\Http\Resources\Transaction\TransactionDailyCollection;
+use App\Http\Resources\Transaction\TransactionOutstandingCollection;
+use App\Http\Resources\Transaction\TransactionResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Services\TransactionService;
 
 class TransactionController extends Controller
 {
+     protected $transactionService;
 
-    public function getTransactionById($id): Transaction
+    public function __construct(TransactionService $transactionService)
     {
-        $transaction = Transaction::find($id);
-        if(!$transaction){
-            throw new HttpResponseException(response()->json([
-                "errors" => [
-                   "NOT_FOUND"
-                ]
-            ])->setStatusCode(404));
-        }
-
-        return $transaction;
+        $this->transactionService = $transactionService;
     }
 
-    public function getStock($id): StockItem
+     public function create(StockItemInputRequest $stockRequest,
+                            TransactionCreateRequest $request)
     {
-        $stockItem = StockItem::find($id);
-        if(!$stockItem){
-            throw new HttpResponseException(response()->json([
-                "errors" => "STOCK_NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-
-        return $stockItem;
-    }
-
-    public function getTransactionByDate($date){
-        $transaction = DB::table("transactions")
-            ->join("customers", "transactions.customer_id", 'customers.id')
-            ->join("stock_items", "transactions.stock_id", "stock_items.id")
-            ->select("customers.customer_name", "customers.nik", "stock_id", "transactions.id",
-                    "transactions.quantity", "transactions.amount",
-                    "transactions.total", "transactions.description", "transactions.item_id",
-                    "transactions.customer_id", "transactions.created_by", "transactions.created_at",)
-            ->whereDate("transactions.created_at", $date)
-            ->orderByDesc("transactions.created_at")
-            ->get();
-
-        if(!$transaction){
-            throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-
-        return $transaction;
-    }
-
-    public function getDataSaleItem(){
-        
-        $transaction = DB::table('transactions')
-            ->selectraw("DATE_FORMAT(created_at, '%Y-%m') AS month,
-                                     DATE_FORMAT(created_at, '%d') AS day,  
-                                     sum(quantity) as total")
-            ->whereMonth("created_at", Carbon::now()->month)
-            ->orderByDesc("created_at")
-            ->groupBy("day")
-            ->groupBy("month")
-            ->limit(30)
-            ->get();
-        
-        if(!$transaction){
-            throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-
-        return $transaction;
-    }
-
-    public function getTopSalePerItem() {
-    $transaction = DB::table('transactions')
-        ->join("customers", "customers.id", "customer_id")
-        ->selectRaw("customer_id, customer_name, sum(quantity) as total")
-        ->where(function($query) {
-            $query->whereNotLike("customer_name", "umum")
-                  ->whereNotLike("customer_name", "%aulia%fauziah%")
-                  ->whereNotLike("customer_name", "balancing");
-        })
-        ->groupBy("customer_id", "customer_name")
-        ->orderByDesc("total")
-        ->limit(7)
-        ->get();
-
-        if(!$transaction){
-            throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-    
-        return $transaction;
-    }
-
-    public function queryGetOutstandingTransaction() {
-        $transaction = DB::table('transactions')
-            ->join("customers", "customers.id", "customer_id")
-            ->join("master_items", "master_items.id", "item_id")
-            ->selectraw("transactions.id, stock_id, customers.id customer_id, customer_name, 
-                                    item_name, description, quantity, amount, total, transactions.created_at")
-            ->whereNotIn("description", ["umum", "balancing"])
-            ->whereNotLike("description", "%done%")
-            ->whereNotLike("description", "%teh iya%")
-            ->orderBy("customer_id")
-            ->orderBy("transactions.created_at")
-            ->get();
-
-        if(!$transaction){
-            throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
-        }
-    
-        return $transaction;
-    }
-
-    public function generateTrxNumber($itemId) {
-        $lastSeq = Transaction::where("item_id", $itemId)->orderByDesc("id")->first();
-
-        if(isset($lastSeq['trx_number']))
-        {   
-            $seq = substr($lastSeq->trx_number, 6, 1);
-            $trxNumber = "trx" . mt_rand(100,999) . (int)$seq + 1;
-        } else {
-            $trxNumber = "trx" . mt_rand(100, 999) . 1;
-        }
-
-        return $trxNumber;
-    }
-
-    public function create(StockItemInputRequest $stockRequest, TransactionCreateRequest $request): JsonResponse
-    {
-    
         $user = Auth::user();
         $dataStock = $stockRequest->validated();
-        $dataTrx = $request->validated();
+        $dataTrx   = $request->validated();
 
-        return DB::transaction(function () use ($dataStock, $dataTrx, $user) {
-            // Get item
-            $masterItem = MasterItem::findOrFail($dataTrx['item_id']); // Use findOrFail to throw an exception if not found
+        $transaction = $this->transactionService->create($dataStock, $dataTrx, $user);
 
-            // Get the latest stock item
-            $stockItem = StockItem::where("item_id", $dataTrx['item_id'])->orderByDesc("id")->first();
-
-            // Create the new stock item
-            $InputStockItem = new StockItem($dataStock);
-            $InputStockItem->item_id = $dataTrx['item_id'];
-            $InputStockItem->cogs = $masterItem->cost_of_goods_sold;
-            $InputStockItem->selling_price = $masterItem->selling_price;
-            $InputStockItem->prev_stock_id = $stockItem ? $stockItem->id : 0; // Use null coalescing operator
-            $InputStockItem->created_by = $user->id;
-            $InputStockItem->save();
-
-            // Create the transaction
-            $transaction = new Transaction($dataTrx);
-            $transaction->item_id = $dataTrx['item_id'];
-            $transaction->customer_id = $dataTrx['customer_id'];
-            $transaction->stock_id = $InputStockItem->id;
-            $transaction->created_by = $user->id;
-            $transaction->save();
-
-            return (new TransactionResource($transaction))->response()->setStatusCode(201);
-        });
+        return (new TransactionResource($transaction))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function update($id, TransactionUpdateRequest $request, StockUpdateRequest $stockRequest,): TransactionResource
-    {
+    public function update($id, TransactionUpdateRequest $request, StockUpdateRequest $stockRequest) {
+
         $user = Auth::user();
-        $dataTrx = $request->validated();
+        $dataTrx   = $request->validated();
         $dataStock = $stockRequest->validated();
 
-        return DB::transaction(function () use ($id, $dataTrx, $dataStock, $user) {
-            //update data
-            $transaction = $this->getTransactionById($id);
-            $transaction->fill($dataTrx);
-            $transaction->updated_by = $user->id;
-            $transaction->save();
+        $transaction = $this->transactionService->update($id, $dataTrx, $dataStock, $user);
 
-            // update stock
-            $stock = $this->getStock($dataStock['stock_id']);
-            $stock->fill($dataStock);
-            $stock->updated_by = $user->id;
-            $stock->save();
-
-            return new TransactionResource($transaction);
-        });
+        return (new TransactionResource($transaction))->response()->setStatusCode(200);
     }
 
-    public function getTransaction($date): TransactionCollection{
+    public function getTransactionByDate($date)
+    {
+        Auth::user();
+        $transaction = $this->transactionService->getTransactionByDate($date);
 
-        $user = Auth::user();
-        $transaction = $this->getTransactionByDate($date);
-
-        return new TransactionCollection($transaction);
+        return (new TransactionCollection($transaction))->response()->setStatusCode(200);
     }
 
-    public function getOutstandingTransaction(): TransactionGetOutstandingCollection{
+    public function getOutstandingTransaction(){
 
-        $user = Auth::user();
-        $transaction = $this->queryGetOutstandingTransaction();
+        Auth::user();
+        $transaction = $this->transactionService->getOutsTransaction();
 
-        return new TransactionGetOutstandingCollection($transaction);
+        return (new TransactionOutstandingCollection($transaction))->response()->setStatusCode(200);
     }
 
-   public function getSalesPerWeek(): JsonResponse {
+   public function getDailySale() {
 
-    $user = Auth::user();
-    $transaction = $this->getDataSaleItem();
+        Auth::user();
+        $transaction = $this->transactionService->getDailySale();
 
-    return response()->json($transaction);
+        return (new TransactionDailyCollection($transaction))->response()->setStatusCode(200);
    }
 
    public function getTopCustomer(): JsonResponse {
 
-    $user = Auth::user();
-    $transaction = $this->getTopSalePerItem();
+        Auth::user();
+        $transaction = $this->transactionService->getTopCustomer();
 
-    return response()->json($transaction);
+        return response()->json($transaction);
    }
 
 }

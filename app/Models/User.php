@@ -11,15 +11,20 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class User extends Model implements Authenticatable
 {
     protected $table = "users";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
     protected $fillable = [
         'username',
         'password',
         'email',
+        'phone',
+        'token',
+        'expiresIn',
+        'created_by',
+        'updated_by',
     ];
 
     public function getAuthIdentifierName()

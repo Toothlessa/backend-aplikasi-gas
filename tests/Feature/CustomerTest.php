@@ -7,22 +7,20 @@ use App\Models\User;
 use Database\Seeders\CustomerSeeder;
 use Database\Seeders\SearchSeeder;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class CustomerTest extends TestCase
 {
+    //running unit test only from this file php artisan test --filter=CustomerTest
     public function testCreateSuccess()
     {
         $this->seed([UserSeeder::class]);
 
         $this->post('/api/customers', [
-            'customer_name' => 'khannedy',
-            'type' => 'RT',
+            'customer_name' => 'andi',
+            'customer_type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'address' => 'Jl.Ledeng Sindang Sari',
@@ -33,8 +31,8 @@ class CustomerTest extends TestCase
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-            'customer_name' => 'khannedy',
-            'type' => 'RT',
+            'customer_name' => 'andi',
+            'customer_type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'address' => 'Jl.Ledeng Sindang Sari',
@@ -71,7 +69,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'khannedy',
-            'type' => 'RT',
+            'customer_type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'phone' => '087829190920'
@@ -80,7 +78,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" =>  'CUSTOMER_NAME_EXISTS',
+            'error' =>  'CUSTOMER_EMAIL_EXISTS',
             ]);
     }
 
@@ -90,7 +88,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'renan',
-            'type' => 'RT',
+            'customer_type' => 'RT',
             'nik' => '3271040408410005',
             'email' => 'Eko@pzn.com',
             'phone' => '0919231'
@@ -99,7 +97,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" =>  'EMAIL_EXISTS',
+            'error' =>  'CUSTOMER_EMAIL_EXISTS',
         ]);
     }
 
@@ -109,7 +107,7 @@ class CustomerTest extends TestCase
 
         $this->post('/api/customers', [
             'customer_name' => 'khannedy',
-            'type' => 'RT',
+            'customer_type' => 'RT',
             'nik' => '3271040408420005',
             'email' => 'Eko@pzn.com',
             'phone' => '087829190920'
@@ -126,6 +124,58 @@ class CustomerTest extends TestCase
         ]);
     }
 
+    public function testUpdateSuceccess()
+    {
+        $this->seed([UserSeeder::class, CustomerSeeder::class]);
+
+        $customer = Customer::query()->limit(1)->first();
+
+        $this->put('/api/customers/' .$customer->id, [
+            'customer_name' => 'Ijat',
+            'customer_type' => 'UM',
+            'nik' => '119011',
+            'email' => 'muhrenan@gmail.com',
+            'address' => 'Jl.Ledeng Sindang Sari II',
+            'phone' => '0811111',
+        ], [
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'customer_name' => 'Ijat',
+                'customer_type' => 'UM',
+                'nik' => '119011',
+                'email' => 'muhrenan@gmail.com',
+                'address' => 'Jl.Ledeng Sindang Sari II',
+                'phone' => '0811111',
+            ]
+            ]);
+    }
+
+    public function testUpdateValidationError()
+    {
+        $this->seed([UserSeeder::class, CustomerSeeder::class]);
+
+        $customer = Customer::query()->limit(1)->first();
+
+        $this->put('/api/customers/' .$customer->id, [
+            'customer_name' => '',
+            'customer_type' => 'UM',
+            'nik' => '119011',
+            'email' => 'muhrenan@gmail.com',
+            'phone' => '0811111',
+        ], [
+            'Authorization' => 'test'
+        ])->assertStatus(400)
+        ->assertJson([
+            'errors' => [
+                    'customer_name' => [
+                        'The customer name field is required.'
+                    ]
+                ]
+            ]);
+    }
+
     public function testGetSuccess()
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
@@ -137,7 +187,7 @@ class CustomerTest extends TestCase
             ->assertJson([
                 'data' => [
                     'customer_name' => 'test',
-                    'type' => 'RT',
+                    'customer_type' => 'RT',
                     'nik' => '3271981923812912',
                     'email' => 'test@gmail.com',
                     'address' => 'Jl.Ledeng Sindang Sari',
@@ -156,11 +206,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(404)
             ->assertJson([
-                'errors' => [
-                    "message" => [
-                        "not found"
-                    ]
-                ]
+                'error' => 'CUSTOMER_NOT_FOUND'
             ]);
     }
 
@@ -182,57 +228,6 @@ class CustomerTest extends TestCase
             ]);
     }
 
-    public function testUpdateSuceccess()
-    {
-        $this->seed([UserSeeder::class, CustomerSeeder::class]);
-
-        $customer = Customer::query()->limit(1)->first();
-
-        $this->put('/api/customers/' .$customer->id, [
-            'customer_name' => 'Ijat',
-            'type' => 'UM',
-            'nik' => '119011',
-            'email' => 'muhrenan@gmail.com',
-            'address' => 'Jl.Ledeng Sindang Sari II',
-            'phone' => '0811111',
-        ], [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->assertJson([
-            'data' => [
-                'customer_name' => 'Ijat',
-                'type' => 'UM',
-                'nik' => '119011',
-                'email' => 'muhrenan@gmail.com',
-                'address' => 'Jl.Ledeng Sindang Sari II',
-                'phone' => '0811111',
-            ]
-            ]);
-    }
-
-    public function testUpdateValidationError()
-    {
-        $this->seed([UserSeeder::class, CustomerSeeder::class]);
-
-        $customer = Customer::query()->limit(1)->first();
-
-        $this->put('/api/customers/' .$customer->id, [
-            'customer_name' => '',
-            'nik' => '119011',
-            'email' => 'muhrenan@gmail.com',
-            'phone' => '0811111',
-        ], [
-            'Authorization' => 'test'
-        ])->assertStatus(400)
-        ->assertJson([
-            'errors' => [
-                    'customer_name' => [
-                        'The customer name field is required.'
-                    ]
-                ]
-            ]);
-    }
-
     public function testCustomerNameAlreadyExists()
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
@@ -241,7 +236,7 @@ class CustomerTest extends TestCase
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'renan',
-            'type' => 'RT',
+            'customer_type' => 'RT',
             'nik' => '119011',
             'email' => 'muhrenan@gmail.com',
             'phone' => '0811111',
@@ -249,7 +244,7 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => "CUSTOMER_NAME_EXISTS"
+            "error" => "CUSTOMER_NAME_EXISTS"
             ]);
     }
 
@@ -261,7 +256,7 @@ class CustomerTest extends TestCase
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name' => 'Judi',
-            'type' => 'RT',
+            'customer_type' => 'RT',
             'nik' => '119011',
             'email' => 'renan@gmail.com',
             'phone' => '0811111',
@@ -269,40 +264,8 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-             "errors" => "EMAIL_EXISTS"
+             "error" => "CUSTOMER_EMAIL_EXISTS"
             ]);
-    }
-
-    public function testDeleteSuccess()
-    {
-        $this->seed([UserSeeder::class, CustomerSeeder::class]);
-        $customer = Customer::query()->limit(1)->first();
-
-        $this->delete('/api/customers/' .$customer->id, [],
-        [
-            'Authorization'=> 'test',
-        ])->assertStatus(200)
-        ->assertJson([
-            'data' => true
-        ]);
-    }
-
-    public function testDeleteNotFound()
-    {
-        $this->seed([UserSeeder::class, CustomerSeeder::class]);
-        $customer = Customer::query()->limit(1)->first();
-
-        $this->delete('/api/customers/' .($customer->id + 100), [],
-        [
-            'Authorization'=> 'test',
-        ])->assertStatus(404)
-        ->assertJson([
-            'errors' => [
-                    "message" => [
-                        "not found"
-                    ]
-                ]
-        ]);
     }
 
     public function testSearchByCustomerName()
@@ -347,7 +310,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(10, count($response['data']));
-        self::assertEquals(21, $response['meta']['total']);
+        self::assertEquals(20, $response['meta']['total']);
     }
 
     public function testSearchByCustomerAddress()
@@ -362,7 +325,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(10, count($response['data']));
-        self::assertEquals(21, $response['meta']['total']);
+        self::assertEquals(20, $response['meta']['total']);
     }
     public function testSearchByCustomerPhone()
     {
@@ -406,7 +369,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(5, count($response['data']));
-        self::assertEquals(21, $response['meta']['total']);
+        self::assertEquals(20, $response['meta']['total']);
         self::assertEquals(2, $response['meta']['current_page']);    
     }
 
@@ -444,7 +407,7 @@ class CustomerTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         // Create a test CSV file
-        $csvData = "customer_name,type,nik,email,address,phone\nJohn Doe,RT,332121312,john@gmail.com,sinsar,082191\nJane Smith,UM,332121311,Jane@gmail.com,sinsara,082192";
+        $csvData = "customer_name,customer_type,nik,email,address,phone\nJohn Doe,RT,332121312,john@gmail.com,sinsar,082191\nJane Smith,UM,332121311,Jane@gmail.com,sinsara,082192";
         $file = UploadedFile::fake()->createWithContent('test.csv', $csvData);
 
         $response = $this->post('/api/customers/import-csv', ['csvFile' => $file],
@@ -452,7 +415,6 @@ class CustomerTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(200);
 
-        // $response->assertStatus(404);
         $this->assertDatabaseHas('customers', ['customer_name' => 'John Doe', 'nik' => 332121312]);
         $this->assertDatabaseHas('customers', ['customer_name' => 'Jane Smith', 'nik' => 332121311]);
     }

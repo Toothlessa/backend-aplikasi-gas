@@ -8,17 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CategoryItem extends Model
 {
     protected $table = "category_items";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
-
+    public $incrementing = true;
+ 
     protected $fillable = [
         'name',
+        'active_flag',
+        'prefix',
+        'inactive_date',
+        'created_by',
+        'updated_by',
     ];
 
-    public function transaction(): HasMany
+    public function masterItem(): HasMany
     {
-        return $this->hasMany(MasterItem::class, "category_id", "id");
+        return $this->hasMany(MasterItem::class, 'category_id', 'id');
     }
 }
