@@ -93,8 +93,7 @@ class StockItemService
         $runningStock   = $this->repository->getStockByItemId($filledGasId); 
         $ownedGas       = $this->assetRepository->getSummaryAssetByItemId($emptyGasId);
 
-        $yesterDayStock = $this->repository->getYesterdayStockByItemId($filledGasId);
-
+        $yesterDayStock = $this->repository->getStockNotToday($filledGasId);
         $emptyGas       = $ownedGas - $runningStock;
 
         $arrayName      = array('running_stock', 'yeterday_stock', 'empty_gas', 'gas_owned');

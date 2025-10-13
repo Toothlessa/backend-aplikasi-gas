@@ -20,7 +20,6 @@ class CustomerService
     public function create($data, $user)
     {
         $this->validateCustomerName($data['customer_name']);
-        $this->validateCustomerEmail($data['email']);
 
         if(!isset($data['nik']) || $data['nik'] == 0) {
             $data['nik'] = $this->repository->generateRandomNumber();
@@ -100,7 +99,8 @@ class CustomerService
         return $customer;
     }
 
-    public function inactiveCustomer($id, $user)
+    //this function is inactive
+    public function inactiveCustomer($id, $user) 
     {
         $customer = $this->getCustomerById($id);
 

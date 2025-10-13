@@ -37,4 +37,10 @@ class Customer extends Model
     {
         return $this->hasMany(Debt::class, "customer_id", "id");
     }
+
+    public function setCustomerTypeAttribute($value)
+    {
+        $this->attributes['customer_type'] = strtoupper($value);
+    }
+
 }

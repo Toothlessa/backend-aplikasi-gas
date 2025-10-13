@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "8.4.11",
+        "php": "8.4.13",
         "laravel/framework": "^12.25.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",

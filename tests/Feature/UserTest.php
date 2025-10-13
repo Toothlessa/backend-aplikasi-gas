@@ -16,7 +16,7 @@ class UserTest extends TestCase
             'username' => 'khannedy',
             'password' => 'rahasia',
             'email' => 'Eko@pzn.com',
-            'phone' => '12312321',
+            // 'phone' => '12312321',
         ])->assertStatus(201)
         ->assertJson([
             "data" => [

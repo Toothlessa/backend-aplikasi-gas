@@ -67,10 +67,10 @@ class StockItemRepository
         return StockItem::where('item_id', $itemId)->sum('stock');
     }
 
-    public function getYesterdayStockByItemId($itemId)
+    public function getStockNotToday($itemId)
     {
         return StockItem::where('item_id', $itemId)
-                        ->where('created_at', '!=', Carbon::now())
+                        ->whereDate('created_at', '!=', Carbon::today())
                         ->sum('stock');
     }
 }

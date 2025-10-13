@@ -82,24 +82,25 @@ class CustomerTest extends TestCase
             ]);
     }
 
-    public function testCreateEmailAlreadyExists()
-    {
-        $this->testCreateSuccess();
+    // this test already unused
+    // public function testCreateEmailAlreadyExists()
+    // {
+    //     $this->testCreateSuccess();
 
-        $this->post('/api/customers', [
-            'customer_name' => 'renan',
-            'customer_type' => 'RT',
-            'nik' => '3271040408410005',
-            'email' => 'Eko@pzn.com',
-            'phone' => '0919231'
-        ],
-        [
-            'Authorization' => 'test'
-        ])->assertStatus(400)
-        ->assertJson([
-            'error' =>  'CUSTOMER_EMAIL_EXISTS',
-        ]);
-    }
+    //     $this->post('/api/customers', [
+    //         'customer_name' => 'renan',
+    //         'customer_type' => 'RT',
+    //         'nik' => '3271040408410005',
+    //         'email' => 'Eko@pzn.com',
+    //         'phone' => '0919231'
+    //     ],
+    //     [
+    //         'Authorization' => 'test'
+    //     ])->assertStatus(400)
+    //     ->assertJson([
+    //         'error' =>  'CUSTOMER_EMAIL_EXISTS',
+    //     ]);
+    // }
 
     public function testCreateUnauthorized()
     {

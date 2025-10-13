@@ -19,7 +19,10 @@ class UserService
     {
         $this->validateUsernameExists($data['username']);
         $this->validateEmailExists($data['email']);
-        $this->validatePhoneExists($data['phone']);
+
+        if(isset($data['phone'])) {
+            $this->validatePhoneExists($data['phone']);
+        }
         
         //Hash the password
         $password = $this->hashingPassword($data['password']);
