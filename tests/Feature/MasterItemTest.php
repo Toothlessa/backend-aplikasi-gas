@@ -7,6 +7,7 @@ use App\Models\MasterItem;
 use Database\Seeders\CategoryItemSeeder;
 use Database\Seeders\MasterItemSearchSeeder;
 use Database\Seeders\MasterItemSeeder;
+use Database\Seeders\StockItemSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
@@ -134,7 +135,7 @@ class MasterItemTest extends TestCase
     public function testGetItemSuccess()
     {
         $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
-        $masterItem = MasterItem::where('item_name', 'GAS LPG 3KG')->first();
+        $masterItem = MasterItem::query()->first();//where('item_name', 'Gas LPG 3 Kg')->first();
 
         $this->get('/api/masteritems/' .$masterItem->id, 
         [
@@ -280,17 +281,20 @@ class MasterItemTest extends TestCase
         ]);
     }
 
-    public function testGetAllMasterItem()
+     public function testGetAllSuccess()
     {
-        $this->testCreateSuccess1();
+
+         $this->testCreateSuccess1();
+         $this->seed([StockItemSeeder::class]);
 
         $response = $this->get('/api/masteritems/all', [
             'Authorization' => 'test'
-        ])->assertStatus(status: 200)
+        ])->assertStatus(200)
         ->Json();
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
+
 
     public function testGetItemByItemType()
     {

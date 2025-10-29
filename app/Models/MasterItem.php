@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MasterItem extends Model
 {
     protected $table = "master_items";
-    protected $primary_key = "id";
+    protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
-    public $increamenting = true;
+    public $incrementing = true;
 
+    protected $appends = ['in_stock'];
     protected $fillable = [
         'item_name',
         'item_code',
@@ -44,6 +45,21 @@ class MasterItem extends Model
     public function categoryItem(): BelongsTo
     {
         return $this->belongsTo(CategoryItem::class, 'category_id', 'id');
+    }
+
+    public function inStock(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $stock = $this->stockitem?->sum('stock') ?? 0;
+                return $stock < 3 ? 'N' : 'Y';
+            },
+        );
+    }
+
+    public function getSellingPricePerUnitAttribute(): float
+    {
+        return $this->quantity ? $this->selling_price / $this->quantity : 0;
     }
 
 }

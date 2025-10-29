@@ -122,15 +122,27 @@ class CustomerService
         $path = $data->getRealPath();
 
         try {
+
             $csv = Reader::createFromPath($path, 'r');
-            $csv->setHeaderOffset(0); //first rows is always header
+            //set delimeter
+            $firstLine = fgets(fopen($path, 'r'));
+            $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+            
+            $csv->setDelimiter($delimiter); // <-- Add this line
+            $csv->setHeaderOffset(0);
 
             $records = $csv->getRecords();
             $successInsert = 0;
 
             DB::beginTransaction();
             foreach($records as $record) {
-                $this->repository->insert($record);
+
+                $record['nik'] = trim($record['nik'] ?? '');
+                if (empty($record['nik']) || $record['nik'] == 0) {
+                    $record['nik'] = $this->repository->generateRandomNumber();
+                }
+
+                $this->repository->create($record);
                 $successInsert++;
             }
             
@@ -141,7 +153,6 @@ class CustomerService
             
             DB::rollBack();
             throw $error;
-            
         }
     }
 

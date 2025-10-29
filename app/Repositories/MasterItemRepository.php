@@ -27,9 +27,12 @@ class MasterItemRepository
         return MasterItem::find($itemId); 
     }
 
-    public function findAll()
+    public function getAll()
     {
-        return MasterItem::all();
+        return MasterItem::with(['categoryItem'])
+                                ->orderBy('active_flag')
+                                ->orderBy('item_name')
+                                ->get();
     }
 
     public function getItemByItemType($itemType):Collection

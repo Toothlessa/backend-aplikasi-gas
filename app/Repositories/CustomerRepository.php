@@ -32,7 +32,7 @@ class CustomerRepository
 
     public function getAll()
     {
-        return Customer::query()->orderByDesc('active_flag')
+        return Customer::query()->orderBy('active_flag')
                                    ->orderBy('customer_name')
                                    ->get();
 

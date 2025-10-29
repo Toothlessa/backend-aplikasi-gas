@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Asset extends Model
 {
+    protected $table = "assets";
+    protected $primaryKey = "id";
+    protected $keyType = "int";
+    public $timestamps = true;
+    public $incrementing = true;
     protected $fillable = [
         'owner_id',
         'item_id',

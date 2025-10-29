@@ -34,11 +34,13 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
     Route::post('/customers/import-csv', [CustomerController::class, 'importCsv']);
 
     /* Master Item Route */
+    Route::get('/masteritems/all', [MasterItemController::class, 'getAll']);
     Route::post('/masteritems', [MasterItemController::class, 'create']);
     Route::put('/masteritems/{id}', [MasterItemController::class, 'update'])->where('id','[0-9]+');   
     Route::get('/masteritems/{id}', [MasterItemController::class, 'findById'])->where('id', '[0-9]+');  
     Route::get('/masteritems/itemtype/{itemType}', [MasterItemController::class, 'getItemByItemType']);
     Route::get('/masteritems/{flagStatus}', [MasterItemController::class, 'getItemByFlagStatus']);
+    Route::get('/masteritems/getAll', [MasterItemController::class, 'inactiveItem']);
     Route::get('/masteritems/all', [MasterItemController::class, 'getAll']);
     Route::patch('/masteritems/inactive/{id}', [MasterItemController::class,'inactiveItem'])->where('id', '[0-9]+');
 

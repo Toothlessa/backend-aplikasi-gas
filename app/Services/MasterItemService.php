@@ -94,11 +94,11 @@ class MasterItemService
         return $masterItem;
     }
 
-    public function findAll()
+    public function getAll()
     {
-        $masterItem = $this->repository->findAll();
+        $masterItem = $this->repository->getAll();
 
-        if(!$masterItem) {
+         if (!$masterItem ) {
             throw new HttpResponseException(response()->json([
                 'NO_DATA_FOUND_IN_MASTER_ITEM'
             ])->setStatusCode(404));

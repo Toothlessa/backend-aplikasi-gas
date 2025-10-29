@@ -24,7 +24,7 @@ class CustomerImportCsvRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csvFile' => 'required|mimes:csv,txt',
+             'csvFile' => 'required|file|mimes:csv,txt,xlsx',
         ];
     }
 
