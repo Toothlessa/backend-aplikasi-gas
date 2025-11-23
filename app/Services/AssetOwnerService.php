@@ -30,7 +30,7 @@ class AssetOwnerService
     {
         $assetOwner = $this->findById($id);
 
-        if($data['name'] != !$assetOwner->name) {
+        if($data['name'] != $assetOwner->name) {
             $this->validateNameExists($data['name']);
         }
 

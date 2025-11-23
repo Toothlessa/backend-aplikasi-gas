@@ -76,11 +76,13 @@ class AssetTest extends TestCase
         $this->testCreateSuccess();
 
         $assets = Asset::query()->first();
-        $user = User::query()->where('token', 'test')->first();
+        $owner = AssetOwner::where('name', 'test3')->first();
+        $masterItem = MasterItem::where('item_name', 'GAS LPG 3KG KOSONG')->first();
+        User::query()->where('token', 'test')->first();
 
         $this->patch('/api/assets/'.$assets->id, [
-            'owner_id' => $assets->owner_id,
-            'item_id' => $assets->item_id,
+            'owner_id' => $owner->id,
+            'item_id' => $masterItem->id,
             'quantity' => 8,
             'description' => 'Beli di Pak Kandar',
         ], [
@@ -88,8 +90,8 @@ class AssetTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'owner_id' => $assets->owner_id,
-                'item_id' => $assets->item_id,
+                'owner_id' => $owner->id,
+                'item_id' => $masterItem->id,
                 'quantity' => 8,
                 'description' => 'Beli di Pak Kandar',
             ]

@@ -11,6 +11,7 @@ class DebtSummaryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'customer_id' => $this->customer_id,
             'customer_name' => $this->customer->customer_name,
             'total_pay' => $this->total_pay,
             'total_debt' => $this->total_debt,

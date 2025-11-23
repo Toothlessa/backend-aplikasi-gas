@@ -78,9 +78,9 @@ Route::middleware([ApiAuthMiddleware::class])->group(function(){
 
     /* Asset */
     Route::post('/assets', [AssetController::class, 'create']);
+    Route::patch('/assets/{id}', [AssetController::class,'update'])->where('id', '[0-9]+');
     Route::get('/assets/summary', [AssetController::class, 'getSumAssetOwner']);
     Route::get('/assets/details/{ownerId}/assets/{item_id}', [AssetController::class, 'getDetailAsset'])->where('ownerId', '[0-9]+');
-    Route::patch('/assets/{id}', [AssetController::class,'update'])->where('id', '[0-9]+');
 
     /* Category Item */
     Route::post('/categoryitems', [CategoryItemController::class, 'create']);

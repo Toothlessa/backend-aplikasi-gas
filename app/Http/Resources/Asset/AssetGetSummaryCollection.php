@@ -15,7 +15,7 @@ class AssetGetSummaryCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            "data"=> AssetResource::collection($this->collection)
+            "data"=> AssetSummaryResource::collection($this->collection)
         ];
     }
 }

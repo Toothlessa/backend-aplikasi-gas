@@ -40,7 +40,7 @@ class DebtRepository
      public function findSummaryDebtGroupByCustomer() 
      {
 
-        $debt = Debt::selectRaw('customer_id, SUM(amount_pay) as total_pay, SUM(total) as total_debt')
+        $debt = Debt::selectRaw('customer_id, SUM(amount_pay) as total_pay, SUM(total) as total_debt, SUM(total) - SUM(amount_pay) AS debt_left')
                 ->groupBy('customer_id')
                 ->with('customer:id,customer_name')
                 ->get();

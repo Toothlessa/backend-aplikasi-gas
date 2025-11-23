@@ -5,7 +5,7 @@ namespace App\Http\Resources\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AssetResource extends JsonResource
+class AssetSummaryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,7 +15,6 @@ class AssetResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
             'owner_id' => $this->owner_id,
             'owner_name' => $this->name,
             'item_id' => $this->item_id,
@@ -23,7 +22,6 @@ class AssetResource extends JsonResource
             'quantity' => $this->quantity,
             'cogs' => $this->cogs,
             'selling_price' => $this->selling_price,
-            'description' => $this->description,
         ];
     }
 }

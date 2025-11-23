@@ -54,13 +54,14 @@ class UserService
             $user->email = $data['email'];
         }
 
-        if($data['phone'] != $user->phone) {
-            $this->validatePhoneExists($data['phone']);
-            $user->phone = $data['phone'];
-        }
+        // if($data['phone'] != $user->phone) {
+        //     $this->validatePhoneExists($data['phone']);
+        //     $user->phone = $data['phone'];
+        // }
 
-        $user->password = $this->hashingPassword($data['password']);
-        $user->save();
+        // $user->password = $this->hashingPassword($data['password']);
+        // $user->save();
+        $user = $this->repository->update($user, $data);
 
         return $user;
     }

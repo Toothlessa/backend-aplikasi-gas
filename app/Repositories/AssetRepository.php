@@ -35,7 +35,7 @@ class AssetRepository
     return DB::table('assets')
             ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
             ->join('master_items', 'assets.item_id', 'master_items.id')
-            ->selectRaw('assets.owner_id, asset_owners.name, master_items.item_name, 
+            ->selectRaw('assets.owner_id, asset_owners.name, assets.item_id, master_items.item_name, 
                         SUM(assets.quantity) AS quantity, SUM(assets.cogs) AS cogs, SUM(assets.selling_price) AS selling_price')
             ->groupByRaw('assets.owner_id, asset_owners.name, assets.item_id')
             ->get();
@@ -47,7 +47,7 @@ class AssetRepository
     return DB::table('assets AS as')
             ->join('asset_owners AS ao', 'ao.id', 'as.owner_id')
             ->join('master_items AS mi', 'mi.id', 'as.item_id')
-            -> select('as.id', 'as.owner_id', 'ao.name', 'mi.item_name', 
+            -> select('as.id', 'as.owner_id', 'as.item_id', 'ao.name', 'mi.item_name', 
                         'as.description', 'as.quantity', 'as.cogs', 'as.selling_price', 'as.created_at')
             ->where('as.owner_id', $ownerId)
             ->where('as.item_id', $itemId)
