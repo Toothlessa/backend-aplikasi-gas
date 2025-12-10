@@ -20,6 +20,7 @@ class TransactionRepository
         $transaction->save();
         return $transaction;
     }
+    
     public function findById(int $id): ?Transaction
     {
         return Transaction::find($id);
