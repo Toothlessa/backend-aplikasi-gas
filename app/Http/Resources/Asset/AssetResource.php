@@ -24,6 +24,7 @@ class AssetResource extends JsonResource
             'cogs' => $this->cogs,
             'selling_price' => $this->selling_price,
             'description' => $this->description,
+            'created_at' => $this->created_at->format('d M Y H:i'),
         ];
     }
 }

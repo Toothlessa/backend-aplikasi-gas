@@ -42,16 +42,19 @@ class AssetRepository
     
     }
 
-    public function getDetailAsset($ownerId, $itemId) {
-
-    return DB::table('assets AS as')
-            ->join('asset_owners AS ao', 'ao.id', 'as.owner_id')
-            ->join('master_items AS mi', 'mi.id', 'as.item_id')
-            -> select('as.id', 'as.owner_id', 'as.item_id', 'ao.name', 'mi.item_name', 
-                        'as.description', 'as.quantity', 'as.cogs', 'as.selling_price', 'as.created_at')
-            ->where('as.owner_id', $ownerId)
-            ->where('as.item_id', $itemId)
-            ->orderBy('as.created_at')
+    public function getDetailAsset($ownerId, $itemId)
+    {
+        return Asset::query()
+            ->join('asset_owners AS ao', 'ao.id', '=', 'assets.owner_id')
+            ->join('master_items AS mi', 'mi.id', '=', 'assets.item_id')
+            ->select(
+                'assets.*',
+                'ao.name',
+                'mi.item_name'
+            )
+            ->where('assets.owner_id', $ownerId)
+            ->where('assets.item_id', $itemId)
+            ->orderBy('assets.created_at')
             ->get();
     }
 
