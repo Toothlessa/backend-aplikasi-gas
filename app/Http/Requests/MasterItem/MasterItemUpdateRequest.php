@@ -26,9 +26,9 @@ class MasterItemUpdateRequest extends FormRequest
           return [
             'item_name'          => ['required', 'max:100'],
             'item_type'          => ['required', 'max:50'],
-            'category_id'        => ['required'],
-            'cost_of_goods_sold' => ['required'],
-            'selling_price'      => ['required'],
+            'category_id'        => ['required', 'numeric'],
+            'cost_of_goods_sold' => ['required', 'numeric', 'min:0'],
+            'selling_price'      => ['required', 'numeric', 'min:0'],
         ];
     }
 

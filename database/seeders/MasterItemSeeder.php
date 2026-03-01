@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\CategoryItem;
 use App\Models\MasterItem;
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class MasterItemSeeder extends Seeder
@@ -15,7 +13,6 @@ class MasterItemSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::query()->first();
         $category = CategoryItem::query()->first();
 
         MasterItem::create([
@@ -25,7 +22,6 @@ class MasterItemSeeder extends Seeder
             'category_id' => $category->id,
             'cost_of_goods_sold' => 5000,
             'selling_price' => 10000,
-            'created_by' => $user->id,
         ]);
 
         MasterItem::create([
@@ -35,7 +31,6 @@ class MasterItemSeeder extends Seeder
             'category_id' => $category->id,
             'cost_of_goods_sold' => 5000,
             'selling_price' => 10000,
-            'created_by' => $user->id,
         ]);
     }
 }

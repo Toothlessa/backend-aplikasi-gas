@@ -3,18 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Customer;
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $user = User::query()->first();
         Customer::create([
             'customer_name' => 'test',
             'customer_type' => 'RT',
@@ -22,7 +16,6 @@ class CustomerSeeder extends Seeder
             'email' => 'test@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari',
             'phone' => '087820977384',
-            'created_by' => $user->id,
         ]);
 
         Customer::create([
@@ -32,7 +25,6 @@ class CustomerSeeder extends Seeder
             'email' => 'renan@gmail.com',
             'address' => 'Jl.Ledeng Sindang Sari',
             'phone' => '082718291',
-            'created_by' => $user->id,
         ]);
     }
 }

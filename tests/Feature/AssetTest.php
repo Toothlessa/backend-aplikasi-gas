@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Asset;
 use App\Models\AssetOwner;
 use App\Models\MasterItem;
-use App\Models\User;
 use Database\Seeders\AssetOwnerSeeder;
 use Database\Seeders\AssetSeeder;
 use Database\Seeders\CategoryItemSeeder;
@@ -19,29 +18,92 @@ class AssetTest extends TestCase
 
     public function testCreateSuccess() {
 
-        $this->seed( [UserSeeder::class, CategoryItemSeeder::class, 
-                            AssetOwnerSeeder::class, MasterItemSeeder::class, ]);
+        $this->seed( [
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    AssetOwnerSeeder::class, 
+                    MasterItemSeeder::class, 
+                ]);
             
         $assetOwner = AssetOwner::query()->first();
         $masterItem = MasterItem::query()->first();
 
         $this->post('/api/assets', [
-            'owner_id' => $assetOwner->id,
-            'item_id' => $masterItem->id,
-            'quantity' => 100,
-            'description' => 'Beli di Mas Supar',
+            'owner_id'              => $assetOwner->id,
+            'item_id'               => $masterItem->id,
+            'quantity'              => 100,
+            'cogs'    => 10000,
+            'selling_price'         => 20000,
+            'description'           => 'Beli di Mas Supar',
         ], [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             'data' => [
-                'owner_id' => $assetOwner->id,
-                'item_id' => $masterItem->id,
-                'quantity' => 100,
-                'cogs' => $masterItem->cost_of_goods_sold,
-                'selling_price' => $masterItem->selling_price * 100,
-                'description' => 'Beli di Mas Supar',
+                'owner_id'              => $assetOwner->id,
+                'item_id'               => $masterItem->id,
+                'quantity'              => 100,
+                'cogs'                  => 10000,
+                'selling_price'         => 20000,
+                'description'           => 'Beli di Mas Supar',
             ]
+            ]);
+    }
+
+    public function testUpdateSuccess () {
+
+        $this->testCreateSuccess();
+        $asset = Asset::query()->first();
+
+        $payload = [
+            'owner_id'              => $asset->owner_id,
+            'item_id'               => $asset->item_id,
+            'quantity'              => 8,
+            'cogs'                  => 10000,
+            'selling_price'         => 20000,
+            'description'           => 'Beli di Pak Kandar',
+        ];
+
+        $this->patchJson(
+            "/api/assets/{$asset->id}", 
+            $payload, 
+            ['Authorization' => 'test']
+            )
+        ->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'owner_id'              => $asset->owner_id,
+                'item_id'               => $asset->item_id,
+                'quantity'              => 8,
+                'cogs'                  => 10000,
+                'selling_price'         => 20000,
+                'description'           => 'Beli di Pak Kandar',
+            ]
+            ]);
+    }
+
+     public function testUpdateNotFound () {
+
+        $this->testCreateSuccess();
+        $asset = Asset::query()->orderByDesc('id')->first();
+
+        $payload = [
+            'owner_id'              => $asset->owner_id,
+            'item_id'               => $asset->item_id,
+            'quantity'              => 8,
+            'cogs'                  => 10000,
+            'selling_price'         => 20000,
+            'description'           => 'Beli di Pak Kandar',
+        ];
+
+        $this->patchJson(
+            "/api/assets/" .$asset->id + 100, 
+            $payload, 
+            ['Authorization' => 'test']
+            )
+        ->assertStatus(404)
+        ->assertJson([
+            "error" => "ASSET_NOT_FOUND"
             ]);
     }
 
@@ -62,39 +124,12 @@ class AssetTest extends TestCase
         $this->testGetSummaryOwnerAsset();
 
         $asset = Asset::query()->first();
-        $response = $this->get('api/assets/details/'.$asset->owner_id.'/assets/'.$asset->item_id,
+        $response = $this->get('api/assets/details/'.$asset->owner_id.'/'.$asset->item_id,
         [
             'Authorization' => 'test'
         ])->assertStatus(status:200)
         ->json();
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
-    }
-
-    public function testUpdateSuccess() {
-
-        $this->testCreateSuccess();
-
-        $assets = Asset::query()->first();
-        $owner = AssetOwner::where('name', 'test3')->first();
-        $masterItem = MasterItem::where('item_name', 'GAS LPG 3KG KOSONG')->first();
-        User::query()->where('token', 'test')->first();
-
-        $this->patch('/api/assets/'.$assets->id, [
-            'owner_id' => $owner->id,
-            'item_id' => $masterItem->id,
-            'quantity' => 8,
-            'description' => 'Beli di Pak Kandar',
-        ], [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->assertJson([
-            'data' => [
-                'owner_id' => $owner->id,
-                'item_id' => $masterItem->id,
-                'quantity' => 8,
-                'description' => 'Beli di Pak Kandar',
-            ]
-            ]);
     }
 }

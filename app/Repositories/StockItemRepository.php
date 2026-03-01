@@ -21,9 +21,9 @@ class StockItemRepository
         return $stock;
     }
 
-    public function findById($id): StockItem
+    public function findByIdOrFail(int $id): StockItem
     {
-        return StockItem::find($id);
+        return StockItem::query()->findOrFail($id);
     }
 
     public function findByItemName()
@@ -33,7 +33,11 @@ class StockItemRepository
 
     public function findLatestStock(int $itemId): ?StockItem
     {
-        return StockItem::where("item_id", $itemId)->orderByDesc("id")->first();
+        // return StockItem::where("item_id", $itemId)->orderByDesc("id")->first();
+           return StockItem::query()
+                            ->where('item_id', $itemId)
+                            ->latest('id')
+                            ->first(); // ← otomatis null jika tidak ada
     }
 
     public function getCurrentStock() {
@@ -55,7 +59,7 @@ class StockItemRepository
                 ->join("master_items", "stock_items.item_id", "master_items.id")
                 ->join('category_items', 'category_id', 'category_items.id')
                 ->selectRaw("stock_items.id, item_id, item_name, item_code, category_items.name AS category, stock, stock_items.created_at")
-                ->whereNull("prev_stock_id")
+                ->where("prev_stock_id", "=", 0)
                 ->where("item_id", $itemId)
                 ->orderByDesc("stock_items.created_at")
                 ->limit(3)

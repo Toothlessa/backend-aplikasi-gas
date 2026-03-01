@@ -24,7 +24,7 @@ class CategoryItemRepository
         $categoryItem->delete();
     }
 
-    public function findById(int $id)
+    public function findById(int $id): ?CategoryItem
     {
         return CategoryItem::find($id);
     }

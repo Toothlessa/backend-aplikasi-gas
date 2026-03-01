@@ -15,20 +15,42 @@ class TransactionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $customer = Customer::where("id", $this->customer_id)->first();
-        return [
-            'id' => $this->id,
-            'customer_id' => $this->customer_id,
-            'customer_name' => $customer->customer_name,
+    //     return [
+    //         # customer response
+    //         'nik'                   => $this['customer']->nik,
+    //         'customer_name'         => $this['customer']->customer_name,
+    //         # item response
+    //         'item_name'             => $this['master_item']->item_name,
+    //         # transaction response
+    //         'trx_number'            => $this['transaction']->trx_number,
+    //         'description'           => $this['transaction']->description,
+    //         'stock_id'              => $this['transaction']->stock_id,
+    //         'quantity'              => $this['transaction']->quantity,
+    //         'amount'                => $this['transaction']->amount,
+    //         'total'                 => $this['transaction']->total,
+    //         'created_by'            => $this['transaction']->created_by,
+    //         'created_at'            => date("h:i:s", strtotime($this['transaction']->created_at)),
+    //         # payment response
+    //         'payment_method'        => $this['receivable_payment']->payment_method,
+    //         'paid_amount'           => $this['receivable_payment']->amount,
+    //     ];
+    return [
             'trx_number' => $this->trx_number,
-            'stock_id' => $this->stock_id,
-            'quantity' => $this->quantity,
-            'amount' => $this->amount,
-            'total' => $this->total,
-            'description' => $this->description,
-            'nik' => $customer->nik,
+            'description'=>$this->description,
+            'quantity'   => $this->quantity,
+            'amount'     => $this->amount,
+            'total'      => $this->total,
             'created_by' => $this->created_by,
-            'created_at' => date("h:i:s", strtotime($this->created_at)),
+            'created_at' => $this->created_at,
+
+            'customer' => [
+                'nik'   => $this->customer->nik,
+                'name' => $this->customer->customer_name,
+            ],
+
+            'item' => [
+                'item_name'   => $this->masterItem->item_name,
+            ]
         ];
     }
 }

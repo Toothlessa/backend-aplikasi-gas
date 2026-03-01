@@ -16,7 +16,6 @@ class StockItemResource extends JsonResource
     {
         
         return [
-            'item_id' => $this->item_id,
             'stock' => $this->stock,
         ];
     }

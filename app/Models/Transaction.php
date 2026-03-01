@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Transaction extends Model
 {
+    # Call the boot function created by from Blameable trait
+    use Blameable;
     protected $table = "transactions";
     protected $primaryKey = "id";
     protected $keyType = "int";
@@ -16,7 +18,6 @@ class Transaction extends Model
     public $incrementing = true;
 
     protected $fillable = [
-        'id',
         'trx_number',
         'item_id',
         'customer_id',
@@ -25,22 +26,29 @@ class Transaction extends Model
         'description',
         'amount',
         'total',
-        'created_by',
-        'updated_by',
     ];
 
-    public function masterItem(): BelongsTo
-    {
+    public function masterItem(): BelongsTo{
         return $this->belongsTo(MasterItem::class, "item_id", "id");
     }
 
-    public function customer(): BelongsTo
-    {
+    public function customer(): BelongsTo{
         return $this->belongsTo(Customer::class, "customer_id", "id");
     }
 
-    public function stockItem()
-    {
+    public function stockItem(): BelongsTo{
         return $this->belongsTo(StockItem::class, 'stock_id');
+    }
+
+    public function receivables(): MorphOne {
+        return $this->morphOne(Receivable::class, 'source');
+    }
+
+     #boot function
+    protected static function booted()
+    {
+        static::saving(function ($model) {
+            $model->total = $model->amount * $model->quantity;
+        });
     }
 }

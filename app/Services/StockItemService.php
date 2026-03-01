@@ -2,104 +2,161 @@
 
 namespace App\Services;
 
-use App\Models\MasterItem;
-use App\Repositories\AssetRepository;
 use App\Repositories\StockItemRepository;
-use App\Repositories\MasterItemRepository;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StockItemService
 {
     protected $repository;
-    protected $masterItemRepository;
-    protected $assetRepository;
+    protected $masterItemService;
+    protected $assetService;
 
-     public function __construct( StockItemRepository $repository,
-                                  MasterItemRepository $masterItemRepository,
-                                  AssetRepository $assetRepository) 
+    public function __construct(StockItemRepository $repository,
+                                MasterItemService $masterItemService,
+                                AssetService $assetService)
     {
-        $this->repository = $repository;
-        $this->masterItemRepository  = $masterItemRepository;
-        $this->assetRepository = $assetRepository;
+        $this->repository           = $repository;
+        $this->masterItemService    = $masterItemService;
+        $this->assetService         = $assetService;
+    }
+
+    public function createNewStock($itemId, $newStockValue)
+    {
+        $masterItem = $this->masterItemService->findById($itemId);
+
+        $stockData = [
+            'item_id'       => $masterItem->id,
+            'stock'         => $newStockValue,
+            'cogs'          => $masterItem->cost_of_goods_sold,
+            'selling_price' => $masterItem->selling_price,
+            'prev_stock_id' => 0, # 0 when initial stock
+        ];
+
+        return $this->repository->create($stockData);
+    }
+
+    public function autoStockFromTransaction($itemId, 
+                                             $qtyStock, 
+                                             $sellingPrice,
+                                             $cogs) {
+
+        $lastStock = $this->findLatestStock($itemId);
+
+        if(!$lastStock) {
+            $lastStock = 0;
+        }
+
+        $stockData = [
+            'item_id'       => $itemId,
+            'stock'         => $qtyStock,
+            'cogs'          => $cogs,
+            'selling_price' => $sellingPrice,
+            'prev_stock_id' => $lastStock->id,
+        ];
+
+        return $this->repository->create($stockData);
+    }
+
+    public function updateStock($id, $data)
+    {
+        # validate data existence
+        $this->masterItemService->findById($data['item_id']);
+
+        $stockData = $this->findById($id);
+        
+        return $this->repository->update($stockData, $data);
     }
 
     public function findById($id)
     {
-        $stockItem = $this->repository->findById($id);
+        $stockItem = $this->repository->findByIdOrFail($id);
 
-        if(!$stockItem){
+        if (! $stockItem) {
             throw new HttpResponseException(response()->json([
-                "errors" => "STOCK_NOT_FOUND"
+                'errors' => 'STOCK_NOT_FOUND',
             ])->setStatusCode(404));
         }
 
         return $stockItem;
     }
 
-    public function create($itemId, $data, $user)
+    public function findLatestStock(int $itemId)
     {
+        $stockItem = $this->repository->findLatestStock($itemId);
 
-        $masterItem = $this->masterItemRepository->findById($itemId);
+        if(!$stockItem) {
+            return 0;
+        }
 
-         // 3. Prepare stock item data
-        $data = array_merge($data, [
-            'item_id'      => $masterItem->id,
-            'cogs'         => $masterItem->cost_of_goods_sold,
-            'selling_price'=> $masterItem->selling_price,
-            'created_by'   => $user->id,
-        ]);
-
-         return $stockData = $this->repository->create($data);
+        return $stockItem;
     }
 
-    public function update($id, $data, $user)
+    public function getStockByItemId(int $itemId)
     {
-        $stockData = $this->repository->findById($id);
-        $data = array_merge($data, [
-            'updated_by'    => $user->$id
-        ]);
+        $stockItem = $this->repository->getStockByItemId($itemId);
 
-        return $this->repository->update($stockData, $data);
+        if(!$stockItem) {
+            return 0;
+        }
+
+        return $stockItem;
+    }
+
+    public function getStockNotToday(int $itemId)
+    {
+        $stockItem = $this->repository->getStockNotToday($itemId);
+
+        if(!$stockItem) {
+            return 0;
+        }
+
+        return $stockItem;
     }
 
     public function getCurrentStock()
     {
         $stockItem = $this->repository->getCurrentStock();
 
-        if(!$stockItem) {
-            throw new HttpResponseException(response()->json( [
-                "errors" => "CURRENT_STOCK_NOT_FOUND"
+        if (! $stockItem) {
+            throw new HttpResponseException(response()->json([
+                'error' => 'CURRENT_STOCK_NOT_FOUND',
             ])->setStatusCode(404));
         }
 
         return $stockItem;
     }
 
-    public function getDetailStockByItem($itemId) 
+    public function getDetailStockByItem($itemId)
     {
         $stockItem = $this->repository->getDetailStockByItem($itemId);
 
-        if(!$stockItem) {
+        if ($stockItem->isEmpty()) {
             throw new HttpResponseException(response()->json([
-                "errors" => "DETAIL_STOCK_NOT_FOUND"
+                'error' => 'DETAIL_STOCK_NOT_FOUND',
             ])->setStatusCode(404));
         }
 
         return $stockItem;
     }
 
-    public function getDisplayStock($filledGasId, $emptyGasId)
-    {
-        $runningStock   = $this->repository->getStockByItemId($filledGasId); 
-        $ownedGas       = $this->assetRepository->getSummaryAssetByItemId($emptyGasId);
+    public function getDisplayStock(int $filledGasId, int $emptyGasId): array{
+        // Current running stock (gas terisi yang sedang beredar)
+        $runningStock = (int) $this->getStockByItemId($filledGasId);
 
-        $yesterDayStock = $this->repository->getStockNotToday($filledGasId);
-        $emptyGas       = $ownedGas - $runningStock;
+        // Total gas owned (aset tabung kosong)
+        $ownedGas = (int) $this->assetService->getSummaryAssetByItemId($emptyGasId);
 
-        $arrayName      = array('running_stock', 'yeterday_stock', 'empty_gas', 'gas_owned');
-        $arrayValue     = array($runningStock ?? 0, $yesterDayStock ?? 0, $emptyGas ?? 0, $ownedGas ?? 0);
-        
-        return array_combine($arrayName, $arrayValue);
+        // Stock snapshot sebelum hari ini
+        $yesterdayStock = (int) $this->getStockNotToday($filledGasId);
+
+        // Gas kosong = total tabung - yang sedang terisi
+        $emptyGas = max($ownedGas - $runningStock, 0);
+
+        return [
+            'running_stock'   => $runningStock,
+            'yesterday_stock' => $yesterdayStock,
+            'empty_gas'       => $emptyGas,
+            'gas_owned'       => $ownedGas,
+        ];
     }
-
 }

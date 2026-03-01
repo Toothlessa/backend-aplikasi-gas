@@ -18,22 +18,30 @@ class DebtService
     {
         $this->validateOneAmountNotZero($data['amount_pay'], $data['total']);
 
-        $data = array_merge($data, [
-            'created_by' => $user->id, 
-        ]);
+        $debt = [
+            'customer_id'       => $data['customer_id'],
+            'description'       => $data['description'],
+            'amount_pay'        => $data['amount_pay'],
+            'total'             => $data['total'],
+            'created_by'        => $user->id,
+        ];
 
-        return $this->repository->create($data);
+        return $this->repository->create($debt);
     }
 
     public function update($id, $data, $user)
     {
         $debt = $this->findById($id);
 
-        $data = array_merge($data, [
-            'updated_by' => $user->id,
-        ]);
+        $newDebt = [
+            'customer_id'       => $data['customer_id'],
+            'description'       => $data['description'],
+            'amount_pay'        => $data['amount_pay'],
+            'total'             => $data['total'],
+            'updated_by'        => $user->id,
+        ];
 
-        return $this->repository->update($debt, $data);
+        return $this->repository->update($debt, $newDebt);
     }
 
     public function findAll()

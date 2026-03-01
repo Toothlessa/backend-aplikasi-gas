@@ -16,15 +16,15 @@ class AssetOwnerTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         $this->post('/api/assetowners', [
-            'name' => 'renan',
+            'name'              => 'renan',
         ],
         [
-            'Authorization' => 'test'
+            'Authorization'     => 'test'
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-                'name'        => 'renan',
-                'active_flag' => 'Y'
+                'name'          => 'renan',
+                'active_flag'   => 'Y'
                 ]
             ]);
     }
@@ -34,13 +34,13 @@ class AssetOwnerTest extends TestCase
         $this->testCreateSuccess();
 
         $this->post('/api/assetowners', [
-            'name' => 'renan',
+            'name'              => 'renan',
         ],
         [
-            'Authorization' => 'test'
+            'Authorization'     => 'test'
         ])->assertStatus(400)
         ->assertJson([
-                "errors" => "OWNER_NAME_EXISTS"
+                "errors"    => "OWNER_NAME_EXISTS"
             ]);
     }
 
@@ -51,12 +51,12 @@ class AssetOwnerTest extends TestCase
         $assetOwner = AssetOwner::query()->first();
         $this->get('/api/assetowners/'.$assetOwner->id,
         [
-            'Authorization' => 'test'
+            'Authorization'         => 'test'
         ])->assertStatus(200)
         ->assertJson([
                 "data" => [
-                    'name' => 'renan',
-                     'active_flag' => 'Y'
+                    'name'          => 'renan',
+                    'active_flag'   => 'Y'
                 ]
             ]);
     }
@@ -79,7 +79,7 @@ class AssetOwnerTest extends TestCase
 
         $this->seed([UserSeeder::class, AssetOwnerSeeder::class]);
 
-        $response = $this->get('/api/assetowners/all',
+        $response = $this->get('/api/assetowners',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -111,7 +111,7 @@ class AssetOwnerTest extends TestCase
         $this->testCreateSuccess();
 
         $assetOwner = AssetOwner::query()->first();
-        $response = $this->patch('/api/assetowners/inactive/'.$assetOwner->id, [], 
+        $response = $this->patch("/api/assetowners/{$assetOwner->id}/inactive", [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -133,7 +133,7 @@ class AssetOwnerTest extends TestCase
 
         $assetOwner = AssetOwner::query()->first();
 
-        $this->patch('/api/assetowners/inactive/'.$assetOwner->id, [], 
+        $this->patch("/api/assetowners/{$assetOwner->id}/inactive", [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(200)

@@ -53,6 +53,7 @@ class MasterItemRepository
     public function getLastSequenceByCategoryId($categoryId)
     {
         return MasterItem::where('category_id', $categoryId)
+                          ->lockForUpdate()
                           ->count();
     }
 

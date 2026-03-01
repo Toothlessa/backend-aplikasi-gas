@@ -37,14 +37,14 @@ class CategoryItemTest extends TestCase
         $this->testCreateSuccess();
 
         $this->post('/api/categoryitems', [
-            'name' => 'Bahan Pokok',
-            'prefix' => 'BP',
+            'name'      => 'Bahan Pokok',
+            'prefix'    => 'BP',
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-                "errors" => "NAME_EXISTS"
+                "error" => "NAME_EXISTS"
             ]);
     }
 
@@ -53,14 +53,14 @@ class CategoryItemTest extends TestCase
         $this->testCreateSuccess();
 
         $this->post('/api/categoryitems', [
-            'name' => 'Bahan Peralatan',
-            'prefix' => 'BP',
+            'name'      => 'Bahan Peralatan',
+            'prefix'    => 'BP',
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            'errors' => 'PREFIX_EXISTS',
+            'error' => 'PREFIX_EXISTS',
         ]);
     }
 
@@ -90,7 +90,7 @@ class CategoryItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(404)
         ->assertJson([
-                "errors" => "CATEGORY_ITEM_NOT_FOUND"
+                "error" => "CATEGORY_ITEM_NOT_FOUND"
             ]);
     }
 
@@ -98,7 +98,7 @@ class CategoryItemTest extends TestCase
 
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
 
-        $response = $this->get('/api/categoryitems/all',
+        $response = $this->get('/api/categoryitems',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -149,7 +149,7 @@ class CategoryItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => "CATEGORY_EXIST_IN_ITEMS"
+            "error" => "CATEGORY_EXIST_IN_ITEMS"
             ]);
     }
 
@@ -170,7 +170,7 @@ class CategoryItemTest extends TestCase
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
 
         $categoryItem = CategoryItem::query()->first();
-        $this->patch('/api/categoryitems/inactive/'.$categoryItem->id, [], 
+        $this->patch("/api/categoryitems/{$categoryItem->id}/inactive", [], 
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -185,7 +185,7 @@ class CategoryItemTest extends TestCase
         $this->testInactiveCategory();
 
         $categoryItem = CategoryItem::query()->first();
-        $this->patch('/api/categoryitems/inactive/'.$categoryItem->id,[],
+        $this->patch("/api/categoryitems/{$categoryItem->id}/inactive", [],
         [
             'Authorization' => 'test'
         ])->assertStatus(200)

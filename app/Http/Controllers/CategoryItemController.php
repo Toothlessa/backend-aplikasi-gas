@@ -9,8 +9,7 @@ use App\Services\CategoryItemService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
-class CategoryItemController extends Controller
-{
+class CategoryItemController extends Controller{
     protected $service;
     
     public function __construct(CategoryItemService $service)
@@ -18,7 +17,7 @@ class CategoryItemController extends Controller
         $this->service = $service;
     }
 
-    public function create(CategoryItemCreateRequest $request): JsonResponse {
+    public function create(CategoryItemCreateRequest $request) {
 
         $user = Auth::user();
         $data=$request->validated();
@@ -28,51 +27,53 @@ class CategoryItemController extends Controller
         return (new CategoryItemCreateResource($categoryItem))->response()->setStatusCode(201);
     }
 
-    public function update($id, CategoryItemCreateRequest $request): CategoryItemCreateResource
+    public function update($id, CategoryItemCreateRequest $request)
     {
         $user = Auth::user();
         $data = $request->validated();
         
         $categoryItem = $this->service->update($id,$data, $user);
 
-        return new CategoryItemCreateResource($categoryItem);
+        return (new CategoryItemCreateResource($categoryItem))->response()->setStatusCode(200);
     }
 
-    public function delete($id): JsonResponse //this function is inactive
+    #this function is inactive
+    public function delete($id): JsonResponse 
     {
         Auth::user();
 
         return $this->service->delete($id);
     }
 
-    public function get($id): CategoryItemCreateResource
+    public function get($id)
     {
         Auth::user();
         $assetOwner = $this->service->getCategoryItemId($id);
 
-        return new CategoryItemCreateResource($assetOwner);
+        return (new CategoryItemCreateResource($assetOwner))->response()->setStatusCode(200);
     }
 
-    public function getAll(): CategoryItemGetAllCollection
+    public function getAll()
     {
         Auth::user();
         $assetOwner = $this->service->getAllCategoryItem();
 
-        return new CategoryItemGetAllCollection($assetOwner);
+        return (new CategoryItemGetAllCollection($assetOwner))->response()->setStatusCode(200);
     }
 
-    public function getActiveCategoryItems(): CategoryItemGetAllCollection
+    public function getActiveCategoryItems()
     {
         Auth::user();
         $assetOwner = $this->service->getActiveCategoryItem();
 
-        return new CategoryItemGetAllCollection($assetOwner);
+        return (new CategoryItemGetAllCollection($assetOwner))->response()->setStatusCode(200);
     }
 
-    public function inactiveOwner($id): CategoryItemCreateResource {
+    public function inactiveOwner($id)
+    {
         $user = Auth::user();
         $categoryItem = $this->service->inactiveCategoryItem($id, $user);
 
-        return new CategoryItemCreateResource($categoryItem);
+        return (new CategoryItemCreateResource($categoryItem))->response()->setStatusCode(200);
     }
 }

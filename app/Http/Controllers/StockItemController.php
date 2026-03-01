@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StockItem\StockItemCreateRequest;
 use App\Http\Requests\StockItem\StockItemInputRequest;
 use App\Http\Resources\StockItem\StockItemGetCollection;
 use App\Http\Resources\StockItem\StockItemGetDetailCollection;
@@ -19,22 +20,22 @@ class StockItemController extends Controller
         $this->service = $service;
     }
 
-    public function create($itemId, StockItemInputRequest $request)
+    public function createNewStock($itemId, StockItemCreateRequest $request)
     {
-        $user = Auth::user();
-        $data = $request->validated();
+        Auth::user();
+        $data = $this->service->createNewStock(
+                                        $itemId,
+                                        $request->validated()['stock']);
 
-        $stockData = $this->service->create($itemId, $data, $user);
-
-        return (new StockItemResource($stockData))->response()->setStatusCode(201);
+        return new StockItemResource($data);
     }
 
-    public function update($id, StockItemInputRequest $request)
+    public function updateStock($id, StockItemInputRequest $request)
     {
-        $user = Auth::user();
-        $data = $request->validated();
-
-        $stockData = $this->service->update($id,$data, $user);
+        Auth::user();
+        $stockData = $this->service->updateStock(
+                                        $id,
+                                        $request->validated());
 
         return new StockItemResource($stockData);
     }

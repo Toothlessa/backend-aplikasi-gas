@@ -19,9 +19,10 @@ class AssetOwnerService
     {
         $this->validateNameExists($data['name']);
 
-        $assetOwner = array_merge($data, [
+        $assetOwner = [
+            'name'=> $data['name'],
             'created_by' => $user->id,
-        ]);
+        ];
 
         return $this->repository->create($assetOwner)->refresh();
     }

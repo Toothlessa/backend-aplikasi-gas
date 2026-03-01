@@ -9,7 +9,6 @@ use App\Http\Resources\AssetOwner\AssetOwnerCollection;
 use App\Http\Resources\AssetOwner\AssetOwnerResource;
 use App\Http\Resources\AssetOwner\AssetOwnerUpdateResource;
 use App\Services\AssetOwnerService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class AssetOwnerController extends Controller
@@ -21,7 +20,7 @@ class AssetOwnerController extends Controller
         $this->service = $service;
     }
 
-    public function create(AssetOwnerCreateRequest $request): JsonResponse {
+    public function create(AssetOwnerCreateRequest $request) {
 
         $user = Auth::user();
         $data=$request->validated();

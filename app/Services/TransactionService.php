@@ -2,174 +2,338 @@
 
 namespace App\Services;
 
-use App\Repositories\StockItemRepository;
 use App\Repositories\TransactionRepository;
-use App\Repositories\MasterItemRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * TransactionService
+ *
+ * Bertanggung jawab atas business logic transaksi.
+ * - Mengatur alur create & update transaksi
+ * - Menjaga konsistensi data antara transaction dan stock
+ * - Mengelola atomic operation (DB transaction)
+ *
+ * NOTE:
+ * Controller hanya boleh memanggil service,
+ * service yang mengatur alur dan validasi bisnis.
+ */
 class TransactionService
 {
     protected $repository;
-    protected $masterItemRepository;
-    protected $stockItemRepository;
+    protected $masterItemService;
+    protected $stockItemService;
+    protected $customerService;
+    protected $receivableService;
 
-     public function __construct( TransactionRepository $repository,
-                                  MasterItemRepository $masterItemRepository,
-                                  StockItemRepository $stockItemRepository) 
-    {
+    /**
+     * Dependency Injection
+     *
+     * Service bergantung pada repository & service lain,
+     * bukan langsung ke model, agar:
+     * - mudah di-test
+     * - mudah di-refactor
+     * - single responsibility
+     */
+    public function __construct(
+        TransactionRepository $repository,
+        MasterItemService $masterItemService,
+        StockItemService $stockItemService,
+        CustomerService $customerService,
+        ReceivableService $receivableService,
+    ) {
         $this->repository = $repository;
-        $this->masterItemRepository  = $masterItemRepository;
-        $this->stockItemRepository = $stockItemRepository;
+        $this->masterItemService = $masterItemService;
+        $this->stockItemService = $stockItemService;
+        $this->customerService = $customerService;
+        $this->receivableService = $receivableService;
     }
 
-    public function create($dataStock, $dataTrx, $user)
+    /**
+     * Create new transaction
+     *
+     * This process must be atomic (all or nothing):
+     * - create stock
+     * - generate trx number
+     * - create transaction
+     */
+    public function createTransaction($data)
     {
+        return DB::transaction(function () use ($data) {
 
-        return DB::transaction(function () use ($dataStock, $dataTrx, $user) {
-            // Get item
-            $masterItem = $this->masterItemRepository->findById($dataTrx['item_id']);
+            # validate data existence
+            $masterItem     = $this->masterItemService->findById($data['item_id']);
+            $customer       = $this->customerService->getCustomerById($data['customer_id']);
 
-            // Get the latest stock item
-            $stockItem = $this->stockItemRepository->findLatestStock($dataTrx['item_id']);
+            /**
+             * Transform data stock
+             * - Sales → stock decrease (minus)
+             */
+            $qtyStock           = -$data['quantity'];
+            $sellingPrice       = $data['amount'];
 
-            // 3. Prepare stock item data
-            $stockData = array_merge($dataStock, [
-                'item_id'      => $masterItem->id,
-                'cogs'         => $masterItem->cost_of_goods_sold,
-                'selling_price'=> $masterItem->selling_price,
-                'prev_stock_id'=> $stockItem ? $stockItem->id : 0,
-                'created_by'   => $user->id,
-            ]);
+            # Create New Record Stock
+            $newStock = $this->stockItemService->autoStockFromTransaction(
+                $masterItem->id,
+                $qtyStock,
+                $sellingPrice,
+                $masterItem->cost_of_goods_sold
+            );
 
-            $newStockItem = $this->stockItemRepository->create($stockData);
-
+            # Generate Transaction Number
             $trx_number = $this->generateTrxNumber($masterItem->id);
-            // Create the transaction
-           $trxData = array_merge($dataTrx, [
-                'item_id'     => $masterItem->id,
-                'trx_number'  => $trx_number,
-                'customer_id' => $dataTrx['customer_id'],
-                'stock_id'    => $newStockItem->id,
-                'created_by'  => $user->id,
+
+            /**
+             * Transform and load payload transaction
+             * all calculation is done in service and models
+             * not in controller or repository
+             */
+            $dataTransaction = [
+                'item_id'       => $masterItem->id,
+                'customer_id'   => $customer->id,
+                'trx_number'    => $trx_number,
+                'stock_id'      => $newStock->id,
+                'quantity'      => $data['quantity'],
+                'amount'        => $data['amount'],
+                'description'   => $data['description'],
+            ];
+
+            # create transaction
+            $transaction = $this->repository->create($dataTransaction);
+
+            /**
+             * Transform data receivable
+             * - Auto create data receivable from transaction
+             */
+
+            # Prepare receivable data
+            $dataReceivable = [
+                'customer_id'       => $customer->id,
+                'item_id'           => $masterItem->id,
+                'quantity'          => $data['quantity'],
+                'price'             => $data['amount'],
+                'payment_method'    => $data['payment_method'],
+                'paid_amount'       => $data['paid_amount'],
+                'description'       => $data['description'],
+                # source and source_id handled in morph models
+            ];
+
+            # Auto create receivable from transaction
+            $this->receivableService->autoCreateReceivableFromTransaction($transaction, $dataReceivable);
+
+            // return [
+            //     'customer'              => $customer,
+            //     'master_item'           => $masterItem,
+            //     'transaction'           => $transaction,
+            //     'receivable_payment'    => $receivable->receivablePayment->first(),
+            // ];
+            return $transaction->load([
+                'customer',
+                'masterItem',
+                'receivables.receivablePayment'
             ]);
 
-            $newTrxData = $this->repository->create($trxData);
-
-            return $newTrxData;
         });
     }
 
-    public function update($id, array $dataTrx, array $dataStock, $user)
-    {
-        return DB::transaction(function () use ($id, $dataTrx, $dataStock, $user) {
-            // update transaction
-            $transaction = $this->repository->findById($id);
-            $dataTrx['updated_by'] = $user->id;
-            $transaction = $this->repository->update($transaction, $dataTrx);
+    /**
+     * Update transaction & dependant stock
+     *
+     * update transaction cannot stand alone
+     * because transaction is depend on stock
+     */
+//     public function updateTransaction(int $id, array $data)
+//     {
+//         return DB::transaction(function () use ($id, $data) {
 
-            // update stock
-            $stock = $this->stockItemRepository->findById($dataStock['stock_id']);
-            $dataStock['updated_by'] = $user->id;
-            $this->stockItemRepository->update($stock, $dataStock);
+//             # get and validate existence data
+//             $transaction = $this->getTransactionById($id);
+//             $customer    = $this->customerService->getCustomerById($data['customer_id']);
+//             $masterItem  = $this->masterItemService->findById($data['item_id']);
+//             $stock       = $this->stockItemService->findById($transaction->stock_id);
+//             /**
+//              * Re-calculate data transaction
+//              * Prepare transaction data
+//              */
+//             $dataTrx = [
+//                 'item_id'       => $masterItem->id,
+//                 'customer_id'   => $customer->id,
+//                 'quantity'      => $data['quantity'],
+//                 'amount'        => $data['amount'],
+//                 'description'   => $data['description'],
+//                 'stock_id'      => $stock->id,
+//             ];
 
-            return $transaction;
-        });
-    }
+//             # update transaction
+//             $this->repository->update($transaction, $dataTrx);
 
+//             /**
+//              * update stock
+//              * -change of stock based on transaction update
+//              */
+//             $newStock = [
+//                 'item_id' => $masterItem->id,
+//                 'stock' => -$data['quantity'],
+//             ];
+//             # update stock
+//             $this->stockItemService->updateStock($stock->id, $newStock);
 
+//               /**
+//              * Transform data receivable
+//              * - Auto create data receivable from transaction
+//              */
+
+//             # Prepare receivable data
+//             $dataReceivable = [
+//                 'transaction_id'    => $transaction->id,
+//                 'customer_id'       => $customer->id,
+//                 'item_id'           => $masterItem->id,
+//                 'quantity'          => $data['quantity'],
+//                 'price'             => $data['amount'],
+//                 'payment_method'    => $data['payment_method'],
+//                 'paid_amount'       => $data['paid_amount'],
+//                 'description'       => $data['description'],
+//             ];
+// `
+//             # Prepare receivable data`
+
+//             # Auto create receivable from transaction
+//             $receivable = $this->receivableService->autoUpdateReceivableFromTransaction($dataReceivable);
+
+//             // return $transaction;
+//             return [
+//                 'customer'              => $customer,
+//                 'master_item'           => $masterItem,
+//                 'transaction'           => $transaction,
+//                 'receivable_payment'    => $receivable->receivablePayment->first(),
+//             ];
+
+//             /**
+//              * Refresh used to:
+//              * - latest data from DB
+//              * - relations are reloaded
+//              */
+//             // return $transaction->refresh();
+//         });
+//     }
+
+    /**
+     * Get transaction by ID
+     */
     public function getTransactionById(int $id)
     {
         $transaction = $this->repository->findById($id);
 
-        if (!$transaction) {
+        if (! $transaction) {
             throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
+                'error' => 'NOT_FOUND',
             ], 404));
         }
 
         return $transaction;
     }
-    
+
+    /**
+     * Get transaction by specific date
+     */
     public function getTransactionByDate($date)
     {
         $transaction = $this->repository->getTransactionByDate($date);
 
-        if(!$transaction){
+        if (! $transaction) {
             throw new HttpResponseException(response()->json([
-                "errors" => "NOT_FOUND"
-            ])->setStatusCode(404));
+                'error' => 'NOT_FOUND',
+            ], 404));
         }
 
         return $transaction;
     }
 
+    /**
+     * Get daily sales aggregation (per month)
+     */
     public function getDailySale()
     {
         $transaction = $this->repository->getDailySalePerMonth();
 
-        if(!$transaction) {
+        if (! $transaction) {
             throw new HttpResponseException(response()->json([
-                "errors" => "DAILY_SALE_NOT_FOUND"
-            ])->setStatusCode(404));
+                'error' => 'DAILY_SALE_NOT_FOUND',
+            ], 404));
         }
 
         return $transaction;
     }
 
+    /**
+     * Get top 10 customers by transaction value
+     */
     public function getTopCustomer()
     {
         $transaction = $this->repository->getTop10Customer();
 
-        if(!$transaction) {
+        if (! $transaction) {
             throw new HttpResponseException(response()->json([
-                "errors" => "TOP_CUSTOMER_NOT_FOUND"
-            ])->setStatusCode(404));
+                'error' => 'TOP_CUSTOMER_NOT_FOUND',
+            ], 404));
         }
 
         return $transaction;
     }
 
+    /**
+     * Get outstanding transactions
+     */
     public function getOutsTransaction()
     {
         $transaction = $this->repository->getOutstandingTransaction();
 
-        if(!$transaction) {
+        if (! $transaction) {
             throw new HttpResponseException(response()->json([
-                "errors" => "OUTSTANDING_TRX_NOT_FOUND"
-            ])->setStatusCode(404));
+                'error' => 'OUTSTANDING_TRX_NOT_FOUND',
+            ], 404));
         }
 
         return $transaction;
     }
 
+    /**
+     * Generate unique transaction number
+     *
+     * Format:
+     * TRX-YYYYMMDD-ITEMID-XXXX
+     */
     public function generateTrxNumber($itemId)
     {
         return DB::transaction(function () use ($itemId) {
+
             $date = Carbon::now()->format('Ymd');
 
-            // Kunci transaksi terakhir untuk item_id tertentu agar tidak dibaca bersamaan
+            /**
+             * Ambil transaksi terakhir berdasarkan item
+             * Digunakan untuk generate sequence berikutnya
+             */
             $lastTrx = $this->repository->findLastTransaction($itemId);
 
             if ($lastTrx && preg_match('/(\d{4})$/', $lastTrx->trx_number, $matches)) {
-                $seq = (int)$matches[1] + 1;
+                $seq = (int) $matches[1] + 1;
             } else {
                 $seq = 1;
             }
 
+            // Pastikan sequence selalu 4 digit
             $seqPadded = str_pad($seq, 4, '0', STR_PAD_LEFT);
 
             $trxNumber = "TRX-{$date}-{$itemId}-{$seqPadded}";
 
-            if(!$trxNumber) {
+            if (! $trxNumber) {
                 throw new HttpResponseException(response()->json([
                     'TRX_NUMBER_FAIL_GENERATE',
-                ])->setStatusCode(400));
+                ], 400));
             }
 
             return $trxNumber;
         });
     }
-
 }

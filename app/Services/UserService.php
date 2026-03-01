@@ -20,20 +20,22 @@ class UserService
         $this->validateUsernameExists($data['username']);
         $this->validateEmailExists($data['email']);
 
-        if(isset($data['phone'])) {
-            $this->validatePhoneExists($data['phone']);
-        }
-        
-        //Hash the password
+        # Hash the password
         $password = $this->hashingPassword($data['password']);
-        //generate token
+        # Generate token
         $token = $this->generateUuid();
 
-        $user = array_merge($data, [
-            'password' => $password,
-            'token'    => $token,
+        $user = [
+            'username'  => $data['username'],
+            'email'     => $data['email'],
+            'password'  => $password,
+            'token'     => $token,
             'expiresIn' => 100000,
-        ]);
+        ];
+
+        if (!empty($data['phone'])) {
+            $user['phone'] = $data['phone'];
+        }
 
         $user = $this->repository->create($user);
 
@@ -54,13 +56,6 @@ class UserService
             $user->email = $data['email'];
         }
 
-        // if($data['phone'] != $user->phone) {
-        //     $this->validatePhoneExists($data['phone']);
-        //     $user->phone = $data['phone'];
-        // }
-
-        // $user->password = $this->hashingPassword($data['password']);
-        // $user->save();
         $user = $this->repository->update($user, $data);
 
         return $user;
@@ -85,7 +80,7 @@ class UserService
         
         if(!$user || !$this->repository->hashCheckPassword($data['password'], $user->password)) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'EMAIL_PASSWORD_WRONG',
+                'error' => 'EMAIL_PASSWORD_WRONG',
             ])->setStatusCode(401));
         }
 
@@ -112,7 +107,7 @@ class UserService
 
         if($userName) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'USERNAME_EXISTS',
+                'error' => 'USERNAME_EXISTS',
             ])->setStatusCode(400));
         }
 
@@ -125,7 +120,7 @@ class UserService
 
         if($email) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'EMAIL_EXISTS',
+                'error' => 'EMAIL_EXISTS',
             ])->setStatusCode(400));
         }
 
@@ -137,7 +132,7 @@ class UserService
 
         if($phone) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'PHONE_EXISTS',
+                'error' => 'PHONE_EXISTS',
             ])->setStatusCode(400));
         } 
 
@@ -150,7 +145,7 @@ class UserService
 
         if(!$hashPassword) {
             throw new HttpResponseException(response()->json([
-                'PASSWOR_GENERATE_FAIL',
+                'error' => 'PASSWOR_GENERATE_FAIL',
             ])->setStatusCode(400));
         }
 
@@ -163,7 +158,7 @@ class UserService
 
         if(!$token) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'TOKEN_GENERATE_FAIL',
+                'error' => 'TOKEN_GENERATE_FAIL',
             ])->setStatusCode(400));
         }
 

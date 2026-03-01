@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockItem extends Model
 {
+    # Call the boot function created by from Blameable trait
+    use Blameable;
     protected $table = "stock_items";
     protected $primaryKey = "id";
     protected $keyType = "int";
@@ -16,8 +19,9 @@ class StockItem extends Model
     protected $fillable = [
         'item_id',
         'stock',
-        'created_by',
-        'updated_by',
+        'cogs',
+        'selling_price',
+        'prev_stock_id',
     ];
 
     public function transaction()

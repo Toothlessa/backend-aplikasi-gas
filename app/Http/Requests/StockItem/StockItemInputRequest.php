@@ -24,7 +24,8 @@ class StockItemInputRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'stock' => ['required', 'numeric'], 
+            'stock'     => ['required', 'numeric', 'min:1'], 
+            'item_id'   => ['required', 'numeric'],
         ];
     }
 

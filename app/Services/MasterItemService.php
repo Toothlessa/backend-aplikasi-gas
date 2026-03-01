@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Repositories\CategoryItemRepository;
-use App\Repositories\StockItemRepository;
 use App\Repositories\MasterItemRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -12,33 +10,35 @@ use Illuminate\Support\Facades\DB;
 class MasterItemService
 {
     protected $repository;
-    protected $stockItemRepository;
-    protected $categoryItemRepository;
+    protected $categoryItemService;
 
      public function __construct( MasterItemRepository $repository,
-                                  StockItemRepository $stockItemRepository,
-                                  CategoryItemRepository $categoryItemRepository) 
+                                  CategoryItemService $categoryItemService) 
     {
         $this->repository = $repository;
-        $this->stockItemRepository = $stockItemRepository;
-        $this->categoryItemRepository = $categoryItemRepository;
+        $this->categoryItemService = $categoryItemService;
     }
 
     public function create($data, $user)
     {
         return DB::transaction(function() use($data, $user)
         {
-           $item_code = $this->generateItemCode($data['category_id']);
+            $this->validateMasterItemExists($data['item_name']);
+            $item_code = $this->generateItemCode($data['category_id']);
 
-           $masterItem = array_merge($data, [
-            'item_code' => $item_code,
-            'created_by' => $user->id,
-           ]);
+            $this->validateItemCodeExists($item_code);
 
-           $this->validateMasterItemExists($masterItem['item_name']);
-           $this->validateItemCodeExists($masterItem['item_code']);
+            $masterItem = [
+                'item_name'          => $data['item_name'],
+                'item_code'          => $item_code,
+                'item_type'          => $data['item_type'],
+                'category_id'        => $data['category_id'],
+                'cost_of_goods_sold' => $data['cost_of_goods_sold'],
+                'selling_price'      => $data['selling_price'],
+                'created_by'         => $user->id,
+            ];
 
-           return $this->repository->create($masterItem);
+            return $this->repository->create($masterItem);
         });
     }
 
@@ -56,27 +56,33 @@ class MasterItemService
                 $data['item_code'] = $this->generateItemCode($data['category_id']);
             }
 
-            $newData = array_merge($data, [
-                'updated_by' => $user->id,
-            ]);
+            $newMasterItem = [
+                'item_name'             => $data['item_name'],
+                'item_code'             => $masterItem->item_code,
+                'item_type'             => $data['item_type'],
+                'category_id'           => $data['category_id'],
+                'cost_of_goods_sold'    => $data['cost_of_goods_sold'],
+                'selling_price'         => $data['selling_price'],
+                'updated_by'            => $user->id,
+            ];
 
-            return $this->repository->update($masterItem, $newData);
+            return $this->repository->update($masterItem, $newMasterItem);
         });
     }
 
     public function generateItemCode($categoryId)
     {
-        $categoryItem = $this->categoryItemRepository->findById($categoryId);
+        $categoryItem = $this->categoryItemService->findById($categoryId);
         
         if(!$categoryItem){
             throw new HttpResponseException(response()->json([
                 'errors' => 'CATEGORY_NOT_FOUND',
             ])->setStatusCode(404));
         }
-        
-        $lastSeq = $this->repository->getLastSequenceByCategoryId($categoryId);
+    
+        $lastid = $this->getLastSequenceByCategoryId($categoryId);
 
-        $item_code = sprintf('%s%03d', $categoryItem->prefix, $lastSeq + 1 );
+        $item_code = sprintf('%s%03d', $categoryItem->prefix, $lastid + 1 );
 
         return $item_code;
     }
@@ -87,11 +93,22 @@ class MasterItemService
 
         if (!$masterItem) {
             throw new HttpResponseException(response()->json([
-                "errors" => "MASTER_ITEM_NOT_FOUND"
+                "error" => "MASTER_ITEM_NOT_FOUND"
             ], 404));
         }
 
         return $masterItem;
+    }
+
+    public function getLastSequenceByCategoryId(int $categoryId)
+    {
+        $lastSeq = $this->repository->getLastSequenceByCategoryId($categoryId);
+
+        if(!$lastSeq) {
+            return 0;
+        }
+
+        return $lastSeq;
     }
 
     public function getAll()
@@ -100,7 +117,7 @@ class MasterItemService
 
          if (!$masterItem ) {
             throw new HttpResponseException(response()->json([
-                'NO_DATA_FOUND_IN_MASTER_ITEM'
+                'error' => 'NO_DATA_FOUND_IN_MASTER_ITEM'
             ])->setStatusCode(404));
         }
 
@@ -113,7 +130,7 @@ class MasterItemService
 
         if(!$masterItem) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'NO_DATA_FOUND_ITEM_WITH_MASTER_TYPE'
+                'error' => 'NO_DATA_FOUND_ITEM_WITH_MASTER_TYPE'
             ])->setStatusCode(404));
         }
 
@@ -139,7 +156,7 @@ class MasterItemService
 
         if($masterItem) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'ITEM_NAME_EXISTS',
+                'error' => 'ITEM_NAME_EXISTS',
             ])->setStatusCode(400));
         }
 
@@ -152,7 +169,7 @@ class MasterItemService
 
         if($masterItem){
             throw new HttpResponseException(response()->json([
-                'errors' => 'ITEM_CODE_EXISTS',
+                'error' => 'ITEM_CODE_EXISTS',
             ])->setStatusCode(400));
         }
 
@@ -161,7 +178,7 @@ class MasterItemService
 
     public function inactiveItem($id, $user)
     {
-        $masterItem = $this->repository->findById($id);
+        $masterItem = $this->findById($id);
 
         if($masterItem->active_flag == 'Y') {
             $masterItem->active_flag = 'N';

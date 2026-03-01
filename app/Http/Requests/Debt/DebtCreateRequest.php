@@ -13,8 +13,8 @@ class DebtCreateRequest extends FormRequest
         return [
             'customer_id' => ['numeric'],
             'description' => ['max:100'],
-            'amount_pay'  => ['numeric', 'nullable'],
-            'total'       => ['numeric', 'nullable'],
+            'amount_pay'  => ['numeric', 'nullable', 'min:0'],
+            'total'       => ['numeric', 'nullable', 'min:0'],
         ];
     }
 

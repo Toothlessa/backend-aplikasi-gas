@@ -65,19 +65,19 @@ class DebtController extends Controller
         return (new DebtCollection($debt)->response()->setStatusCode(200));
     }
 
-    public function findDebtSummary(): DebtSummaryCollection {
+    public function findDebtSummary() {
         Auth::user();
 
         $debt = $this->service->findSummaryDebtGroupByCustomer();
 
-        return new DebtSummaryCollection($debt);
+        return (new DebtSummaryCollection($debt))->response()->setStatusCode(200);
     }
 
-    public function findDebtOutstanding(): DebtSummaryCollection {
+    public function findDebtOutstanding() {
         
         Auth::user();
         $debt = $this->service->findDebtOutstanding();
 
-        return new DebtSummaryCollection($debt);
+        return (new DebtSummaryCollection($debt))->response()->setStatusCode(200);
     }
 }

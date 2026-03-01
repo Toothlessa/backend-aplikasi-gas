@@ -3,32 +3,29 @@
 namespace App\Services;
 
 use App\Repositories\CategoryItemRepository;
-use App\Repositories\MasterItemRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class CategoryItemService
 {
     protected $repository;
-    protected $masterItemRepository;
-    public function __construct(CategoryItemRepository $repository,
-                                MasterItemRepository $masterItemRepository)
+    public function __construct(CategoryItemRepository $repository)
     {
         $this->repository = $repository;
-        $this->masterItemRepository = $masterItemRepository;
     }
 
-    public function create($data, $user)
-    {
+    public function create($data, $user){
         
         $this->validateCategoryName($data["name"]);
         $this->validateCategoryItemPrefix($data['prefix']);
 
-        $data = array_merge($data, [
+        $categoryItem = [
+            'name' => $data['name'],
+            'prefix' => $data['prefix'],
             'created_by' => $user->id,
-        ]);
+        ];
 
-        return $this->repository->create($data);
+        return $this->repository->create($categoryItem);
     }
 
     public function update($id, $data, $user)
@@ -39,11 +36,13 @@ class CategoryItemService
 
         $categoryItem = $this->repository->findById($id);
 
-        $newData = array_merge($data, [
-            "updated_by" => $user->id,
-        ]);
+        $newCategoryItem = [
+            'name' => $data['name'],
+            'prefix' => $data['prefix'],
+            'updated_by' => $user->id,
+        ];
 
-        return $this->repository->update($categoryItem,$newData);
+        return $this->repository->update($categoryItem,$newCategoryItem);
     }
 
     public function delete($id)
@@ -58,13 +57,26 @@ class CategoryItemService
         ])->setStatusCode(200);
     }
 
+    public function findById(int $id)
+    {
+        $data = $this->repository->findById($id);
+
+        if(!$data) {
+            throw new HttpResponseException(response()->json([
+                "error" => "CATEGORY_ITEM_NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+
+        return $data;
+    }
+
     public function getCategoryItemId($id)
     {
         $data = $this->repository->findById($id);
 
         if(!$data) {
             throw new HttpResponseException(response()->json([
-                "errors" => "CATEGORY_ITEM_NOT_FOUND"
+                "error" => "CATEGORY_ITEM_NOT_FOUND"
             ])->setStatusCode(404));
         }
 
@@ -77,7 +89,7 @@ class CategoryItemService
 
         if($data) {
             throw new HttpResponseException(response()->json( [
-                "errors" => "NAME_EXISTS"
+                "error" => "NAME_EXISTS"
             ])->setStatusCode(400));
         }
 
@@ -90,7 +102,7 @@ class CategoryItemService
         $data =  $this->repository->validateCategoryMasterItem($id);
         if($data) {
             throw new HttpResponseException(response()->json( [
-                "errors" => "CATEGORY_EXIST_IN_ITEMS"
+                "error" => "CATEGORY_EXIST_IN_ITEMS"
             ])->setStatusCode(400));
         }
 
@@ -102,7 +114,7 @@ class CategoryItemService
         $data = $this->repository->validateCategoryItemPrefix($prefix);
         if($data) {
             throw new HttpResponseException(response()->json([
-                'errors' => 'PREFIX_EXISTS',
+                'error' => 'PREFIX_EXISTS',
             ])->setStatusCode(400));
         }
 

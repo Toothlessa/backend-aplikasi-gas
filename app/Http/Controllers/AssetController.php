@@ -12,12 +12,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AssetController extends Controller
 {
-
     protected $service;
     protected $masterItemService;
 
     public function __construct(AssetService $service,
-                                 MasterItemService $masterItemService) 
+                                MasterItemService $masterItemService) 
     {
         $this->service = $service;
         $this->masterItemService = $masterItemService;
@@ -39,23 +38,23 @@ class AssetController extends Controller
         $data = $request->validated();
 
         $asset = $this->service->update($id, $data, $user);
-        return new AssetCreateResource($asset);;
+        return (new AssetCreateResource($asset))->response()->setStatusCode(200);
     }
 
-    public function getSumAssetOwner()
+    public function getSumAssetByOwner()
     {
         Auth::user();
-        $asset = $this->service->summaryAssetOwner();
+        $asset = $this->service->getSummaryAssetByOwner();
 
-        return new AssetGetSummaryCollection($asset);
+        return (new AssetGetSummaryCollection($asset))->response()->setStatusCode(200);
     }
 
-    public function getDetailAsset($ownerId, $item_id):AssetGetDetailCollection {
-
+    public function getDetailAsset($ownerId, $item_id)
+    {
         Auth::user();
 
         $detailAsset = $this->service->getDetailAsset($ownerId, $item_id);
 
-        return new AssetGetDetailCollection($detailAsset);
+        return (new AssetGetDetailCollection($detailAsset))->response()->setStatusCode(200);
     }
 }

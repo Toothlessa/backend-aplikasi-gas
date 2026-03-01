@@ -19,25 +19,27 @@ class MasterItemTest extends TestCase
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
         $category = CategoryItem::query()->first();
 
-        $this->post('/api/masteritems', [
-            'item_name' => 'Gas LPG 3 Kg',
-            'item_type' => 'ASSET',
-            'category_id' => $category->id,
+        $payload = [
+            'item_name'          => 'Gas LPG 3 Kg',
+            'item_type'          => 'ASSET',
+            'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
-        ],
-        [
-            'Authorization' => 'test'
-        ])->assertStatus(201)
-        ->assertJson([
-            "data" => [
-            'item_name' => 'Gas LPG 3 Kg',
-            'item_type' => 'ASSET',
-            'category_id' => $category->id,
-            'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
-            ]
-        ]);
+            'selling_price'      => 19000,
+        ];
+
+        $this->post('/api/masteritems', 
+                    $payload,       
+                    ['Authorization' => 'test'])
+                    ->assertStatus(201)
+                    ->assertJson([
+                        "data" => [
+                            'item_name'          => 'Gas LPG 3 Kg',
+                            'item_type'          => 'ASSET',
+                            'category_id'        => $category->id,
+                            'cost_of_goods_sold' => 16000,
+                            'selling_price'      => 19000,
+                        ]
+                    ]);
     }
 
     public function testCreateSuccess1()
@@ -47,22 +49,22 @@ class MasterItemTest extends TestCase
 
         for($i = 0; $i < 10; $i ++) {
             $this->post('/api/masteritems', [
-            'item_name' => 'Air Mineral'.$i,
-            'item_type' => 'ITEM',
-            'category_id' => $category->id,
+            'item_name'          => 'Air Mineral'.$i,
+            'item_type'          => 'ITEM',
+            'category_id'        => $category->id,
             'cost_of_goods_sold' => 3000,
-            'selling_price' => 5000,
+            'selling_price'      => 5000,
             ],
         [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             'data' => [
-                'item_name' => 'Air Mineral'.$i,
-                'item_type' => 'ITEM',
-                'category_id' => $category->id,
+                'item_name'          => 'Air Mineral'.$i,
+                'item_type'          => 'ITEM',
+                'category_id'        => $category->id,
                 'cost_of_goods_sold' => 3000,
-                'selling_price' => 5000,   
+                'selling_price'      => 5000,   
             ]
         ]);
         }
@@ -74,10 +76,10 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->post('/api/masteritems', [
-            'item_name' => '',
-            'category' => 'Bahan Pokok',
+            'item_name'          => '',
+            'category'           => 'Bahan Pokok',
             'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
+            'selling_price'      => 19000,
         ],
         [
             'Authorization' => 'test'
@@ -96,16 +98,16 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->post('/api/masteritems', [
-            'item_name' => 'Gas LPG 3 Kg',
-            'category_id' => $category->id,
+            'item_name'          => 'Gas LPG 3 Kg',
+            'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
+            'selling_price'      => 19000,
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(400)
         ->assertJson([
-            "errors"=> 'ITEM_NAME_EXISTS'
+            "error"=> 'ITEM_NAME_EXISTS'
         ]);
     }
 
@@ -115,10 +117,10 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->post('/api/masteritems', [
-            'item_name' => 'Gas LPG 3 Kg',
-            'category_id' => $category->id,
+            'item_name'          => 'Gas LPG 3 Kg',
+            'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
-            'selling_price' => 19000,
+            'selling_price'      => 19000,
         ],
         [
             'Authorization' => 'salah'
@@ -134,7 +136,11 @@ class MasterItemTest extends TestCase
 
     public function testGetItemSuccess()
     {
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class
+        ]);
         $masterItem = MasterItem::query()->first();//where('item_name', 'Gas LPG 3 Kg')->first();
 
         $this->get('/api/masteritems/' .$masterItem->id, 
@@ -143,9 +149,9 @@ class MasterItemTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
            'data' => [
-                'item_name' => 'GAS LPG 3KG',
+                'item_name'          => 'GAS LPG 3KG',
                 'cost_of_goods_sold' => 5000,
-                'selling_price' => 10000,
+                'selling_price'      => 10000,
                 ]
         ]);
     }
@@ -160,7 +166,7 @@ class MasterItemTest extends TestCase
             'Authorization' => 'test'
         ])->assertStatus(404)
         ->assertJson([
-                 "errors" => "MASTER_ITEM_NOT_FOUND"
+                 "error" => "MASTER_ITEM_NOT_FOUND"
         ]);
     }
 
@@ -186,7 +192,7 @@ class MasterItemTest extends TestCase
     {
         $this->testCreateSuccess1();
 
-        $response = $this->get('api/masteritems/'.'Y',
+        $response = $this->get('api/masteritems/status/'.'Y',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -199,7 +205,7 @@ class MasterItemTest extends TestCase
     {
         $this->testInactiveItem();
 
-        $response = $this->get('api/masteritems/'.'N',
+        $response = $this->get('api/masteritems/status/'.'N',
         [
             'Authorization' => 'test'
         ])->assertStatus(200);
@@ -215,38 +221,44 @@ class MasterItemTest extends TestCase
         $category   = CategoryItem::where('prefix', 'AT')->first();
 
         $this->put('/api/masteritems/' .$masterItem->id, 
-        [ 'item_name' => 'Indomie Goreng',
-                'item_type' => 'ITEM',
-                'category_id' => $category->id,
-                'cost_of_goods_sold' => 3000,
-                'selling_price' => 3500,
+        [ 
+            'item_name'          => 'Indomie Goreng',
+            'item_type'          => 'ITEM',
+            'category_id'        => $category->id,
+            'cost_of_goods_sold' => 3000,
+            'selling_price'      => 3500,
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
         ->assertJson([
            'data' => [
-                'item_name' => 'Indomie Goreng',
-                'item_type' => 'ITEM',
-                'category_id' => $category->id,
+                'item_name'          => 'Indomie Goreng',
+                'item_type'          => 'ITEM',
+                'category_id'        => $category->id,
                 'cost_of_goods_sold' => 3000,
-                'selling_price' => 3500,
+                'selling_price'      => 3500,
             ]
         ]);
     }
 
     public function testUpdateValidationError()
     {
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class
+        ]);
         $masterItem = MasterItem::query()->limit(1)->first();
         $category = CategoryItem::query()->first();
 
         $this->put('/api/masteritems/' .$masterItem->id, 
-        [ 'item_name' => '',
-                'item_code' => 'M001',
-                'category_id' => $category->id,
-                'cost_of_goods_sold' => 3000,
-                'selling_price' => 3500,
+        [ 
+            'item_name'          => '',
+            'item_code'          => 'M001',
+            'category_id'        => $category->id,
+            'cost_of_goods_sold' => 3000,
+            'selling_price'      => 3500,
         ],
         [
             'Authorization' => 'test'
@@ -267,17 +279,18 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->put('/api/masteritems/' .$masterItem->id, 
-        [ 'item_name' => 'Air Mineral0',
-                'item_type' => 'RT',
-                'category_id' => $category->id,
-                'cost_of_goods_sold' => 3000,
-                'selling_price' => 3500,
+        [ 
+            'item_name'          => 'Air Mineral0',
+            'item_type'          => 'RT',
+            'category_id'        => $category->id,
+            'cost_of_goods_sold' => 3000,
+            'selling_price'      => 3500,
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 400)
         ->assertJson([
-            "errors"=> "ITEM_NAME_EXISTS"
+            "error"=> "ITEM_NAME_EXISTS"
         ]);
     }
 
@@ -287,7 +300,7 @@ class MasterItemTest extends TestCase
          $this->testCreateSuccess1();
          $this->seed([StockItemSeeder::class]);
 
-        $response = $this->get('/api/masteritems/all', [
+        $response = $this->get('/api/masteritems', [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->Json();
@@ -311,10 +324,14 @@ class MasterItemTest extends TestCase
 
     public function testInactiveItem()
     {
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSearchSeeder::class]);
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSearchSeeder::class
+        ]);
 
         $masterItem = MasterItem::query()->first();
-        $response = $this->patch('/api/masteritems/inactive/'.$masterItem->id,[], 
+        $response = $this->patch("/api/masteritems/{$masterItem->id}/inactive",[], 
 [
             'Authorization' => 'test'
         ])->assertStatus(200)

@@ -17,77 +17,138 @@ use Illuminate\Support\Facades\Route;
 Route::post('/users', [UserController::class, 'register']);
 Route::post('/users/login', [UserController::class, 'login']);
 
-Route::middleware([ApiAuthMiddleware::class])->group(function(){
-    /* User Route */
-    Route::get('/users/current', [UserController::class, 'get']);
-    Route::patch('/users/current', [UserController::class, 'update']);
-    Route::delete('/users/logout', [UserController::class, 'logout']);
+Route::middleware(ApiAuthMiddleware::class)->group(function () {
 
-    /* Customer Route */
-    Route::post('/customers', [CustomerController::class, 'create']);
-    Route::get('/customers', [CustomerController::class, 'search']);
-    Route::get('/customers/all', [CustomerController::class, 'getAll']);
-    Route::get('/customers/{id}', [CustomerController::class, 'get'])->where('id', '[0-9]+');
-    Route::put('/customers/{id}', [CustomerController::class,'update'])->where('id', '[0-9]+');
-    Route::delete('/customers/{id}', [CustomerController::class, 'delete'])-> where('id','[0-9]+');
-    Route::patch('/customers/inactive/{id}', [CustomerController::class,'inactiveCustomer'])->where('id', '[0-9]+');
-    Route::post('/customers/import-csv', [CustomerController::class, 'importCsv']);
+    /*
+    |--------------------------------------------------------------------------
+    | User
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('current', 'get');
+        Route::patch('current', 'update');
+        Route::delete('logout', 'logout');
+    });
 
-    /* Master Item Route */
-    Route::get('/masteritems/all', [MasterItemController::class, 'getAll']);
-    Route::post('/masteritems', [MasterItemController::class, 'create']);
-    Route::put('/masteritems/{id}', [MasterItemController::class, 'update'])->where('id','[0-9]+');   
-    Route::get('/masteritems/{id}', [MasterItemController::class, 'findById'])->where('id', '[0-9]+');  
-    Route::get('/masteritems/itemtype/{itemType}', [MasterItemController::class, 'getItemByItemType']);
-    Route::get('/masteritems/{flagStatus}', [MasterItemController::class, 'getItemByFlagStatus']);
-    Route::get('/masteritems/getAll', [MasterItemController::class, 'inactiveItem']);
-    Route::get('/masteritems/all', [MasterItemController::class, 'getAll']);
-    Route::patch('/masteritems/inactive/{id}', [MasterItemController::class,'inactiveItem'])->where('id', '[0-9]+');
+    /*
+    |--------------------------------------------------------------------------
+    | Customers
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('customers')->controller(CustomerController::class)->group(function () {
+        Route::post('/', 'create');
+        Route::get('/', 'search');
+        Route::get('{id}', 'get')->whereNumber('id');
+        Route::put('{id}', 'update')->whereNumber('id');
+        Route::delete('{id}', 'delete')->whereNumber('id');
 
-    /* Input Stock Route */
-    Route::post('/stockitems/{id}', [StockItemController::class, 'create'])->where('id', '[0-9]+');
-    Route::put('/stockitems/{id}', [StockItemController::class, 'update'])->where('id', '[0-9]+');
-    Route::get('/stockitems/currentstock/{itemId?}', [StockItemController::class, 'getCurrentStock']);
-    Route::get('/stockitems/detailstock/{itemId}', [StockItemController::class, 'getDetailStock'])->where('itemId', '[0-9]+');
-    Route::get('/stockitems/displaystock/{filledGasId}/{emptyGasId}', [StockItemController::class, 'getDisplayStock'])
-           ->where('filledGasId', '[0-9]+')
-           ->where('emptyGasId', '[0-9]+');
+        Route::patch('{id}/inactive', 'inactiveCustomer')->whereNumber('id');
+        Route::post('import-csv', 'importCsv');
+    });
 
-    /* Transaction Route */
-    Route::post('/transactions', [TransactionController::class, 'create']);
-    Route::get('/transactions/date/{date?}', [TransactionController::class, 'getTransactionByDate'])->defaults('date', Carbon::today());
-    Route::get('/transactions/outstanding', [TransactionController::class, 'getOutstandingTransaction']);
-    /* Chart */
-    Route::get('/transactions/dailysale', [TransactionController::class, 'getDailySale']);
-    Route::get('/transactions/topcustomer', [TransactionController::class, 'getTopCustomer']);
-    Route::patch('/transactions/{id}', [TransactionController::class, 'update'])->where('id', '[0-9]+');
+    /*
+    |--------------------------------------------------------------------------
+    | Master Items
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('masteritems')->controller(MasterItemController::class)->group(function () {
+        Route::get('/', 'getAll');
+        Route::post('/', 'create');
+        Route::get('{id}', 'findById')->whereNumber('id');
+        Route::put('{id}', 'update')->whereNumber('id');
 
-    /* Debt Route */
-    Route::post('/debts', [DebtController::class, 'create']);
-    Route::patch('/debts/{id}', [DebtController::class, 'update'])->where('id', '[0-9]+');
-    Route::get('/debts/customer/{customerId}', [DebtController::class, 'findDebtByCustId'])->where('customerId', '[0-9]+');
-    Route::get('/debts/summary', [DebtController::class, 'findDebtSummary']);
-    Route::get('/debts/outstanding', [DebtController::class, 'findDebtOutstanding']);
+        Route::get('itemtype/{itemType}', 'getItemByItemType');
+        Route::get('status/{flagStatus}', 'getItemByFlagStatus');
+        Route::patch('{id}/inactive', 'inactiveItem')->whereNumber('id');
+    });
 
-    /* Asset Owner */
-    Route::post('/assetowners', [AssetOwnerController::class, 'create']);
-    Route::patch('/assetowners/{id}', [AssetOwnerController::class,'update'])->where('id', '[0-9]+');
-    Route::get('/assetowners/{id}', [AssetOwnerController::class, 'find'])->where('id', '[0-9]+');
-    Route::get('/assetowners/all', [AssetOwnerController::class, 'getAll']);
-    Route::patch('/assetowners/inactive/{id}', [AssetOwnerController::class,'inactiveOwner'])->where('id', '[0-9]+');
+    /*
+    |--------------------------------------------------------------------------
+    | Stock Items
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('stockitems')->controller(StockItemController::class)->group(function () {
+        Route::post('{itemId}', 'createNewStock')->whereNumber('id');
+        Route::put('{id}', 'updateStock')->whereNumber('id');
 
-    /* Asset */
-    Route::post('/assets', [AssetController::class, 'create']);
-    Route::patch('/assets/{id}', [AssetController::class,'update'])->where('id', '[0-9]+');
-    Route::get('/assets/summary', [AssetController::class, 'getSumAssetOwner']);
-    Route::get('/assets/details/{ownerId}/assets/{item_id}', [AssetController::class, 'getDetailAsset'])->where('ownerId', '[0-9]+');
+        Route::get('current/{itemId?}', 'getCurrentStock');
+        Route::get('detail/{itemId}', 'getDetailStock')->whereNumber('itemId');
+        Route::get('display/{filledGasId}/{emptyGasId}', 'getDisplayStock')
+            ->whereNumber('filledGasId')
+            ->whereNumber('emptyGasId');
+    });
 
-    /* Category Item */
-    Route::post('/categoryitems', [CategoryItemController::class, 'create']);
-    Route::get('/categoryitems/{id}', [CategoryItemController::class, 'get'])->where('id', '[0-9]+');
-    Route::get('/categoryitems/all', [CategoryItemController::class, 'getAll']);
-    Route::get('/categoryitems/active', [CategoryItemController::class, 'getActiveCategoryItems']);
-    Route::patch('/categoryitems/{id}', [CategoryItemController::class,'update'])->where('id', '[0-9]+');
-    Route::delete('/categoryitems/{id}', [CategoryItemController::class, 'delete'])-> where('id','[0-9]+');
-    Route::patch('/categoryitems/inactive/{id}', [CategoryItemController::class,'inactiveOwner'])->where('id', '[0-9]+');
+    /*
+    |--------------------------------------------------------------------------
+    | Transactions
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('transactions')->controller(TransactionController::class)->group(function () {
+        Route::post('/', 'createTransaction');
+        Route::patch('{id}', 'updateTransaction')->whereNumber('id');
+
+        Route::get('date/{date?}', 'getTransactionByDate')->defaults('date', Carbon::today());
+        Route::get('outstanding', 'getOutstandingTransaction');
+
+        Route::get('chart/daily-sale', 'getDailySale');
+        Route::get('chart/top-customer', 'getTopCustomer');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Debts
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('debts')->controller(DebtController::class)->group(function () {
+        Route::post('/', 'create');
+        Route::patch('{id}', 'update')->whereNumber('id');
+
+        Route::get('customer/{customerId}', 'findDebtByCustId')->whereNumber('customerId');
+        Route::get('summary', 'findDebtSummary');
+        Route::get('outstanding', 'findDebtOutstanding');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Asset Owners
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('assetowners')->controller(AssetOwnerController::class)->group(function () {
+        Route::post('/', 'create');
+        Route::get('/', 'getAll');
+        Route::get('{id}', 'find')->whereNumber('id');
+        Route::patch('{id}', 'update')->whereNumber('id');
+        Route::patch('{id}/inactive', 'inactiveOwner')->whereNumber('id');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Assets
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('assets')->controller(AssetController::class)->group(function () {
+        Route::post('/', 'create');
+        Route::patch('{id}', 'update')->whereNumber('id');
+
+        Route::get('summary', 'getSumAssetByOwner');
+        Route::get('details/{ownerId}/{itemId}', 'getDetailAsset')
+            ->whereNumber('ownerId')
+            ->whereNumber('itemId');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Category Items
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('categoryitems')->controller(CategoryItemController::class)->group(function () {
+        Route::post('/', 'create');
+        Route::get('/', 'getAll');
+        Route::get('active', 'getActiveCategoryItems');
+        Route::get('{id}', 'get')->whereNumber('id');
+        Route::patch('{id}', 'update')->whereNumber('id');
+        Route::delete('{id}', 'delete')->whereNumber('id');
+        Route::patch('{id}/inactive', 'inactiveOwner')->whereNumber('id');
+    });
+
 });

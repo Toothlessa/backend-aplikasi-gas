@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class UserTest extends TestCase
@@ -13,21 +11,47 @@ class UserTest extends TestCase
     public function testRegisterSuccess()
     {
         $this->post('/api/users', [
-            'username' => 'khannedy',
-            'password' => 'rahasia',
-            'email' => 'Eko@pzn.com',
-            // 'phone' => '12312321',
+            'username'      => 'khannedy',
+            'password'      => 'rahasia',
+            'email'         => 'Eko@pzn.com',
+            'phone'         => '12312321',
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-            'username' => 'khannedy',
-            'email' => 'Eko@pzn.com',
+                'username'      => 'khannedy',
+                'email'         => 'Eko@pzn.com',
+                'phone'         => '12312321',
             ]
             ]);
 
             $user = User::where('username', 'khannedy')->first();
             self::assertNotNull($user->token);
             self::assertEquals($user->expiresIn, 100000);
+    }
+
+    public function testRegisterNoPhone() {
+        $payload = [
+             'username'      => 'Andi',
+             'password'      => 'rahasia',
+             'email'         => 'Andi@pzn.com',
+        ];
+
+        $this->postJson('/api/users',
+                        $payload,
+                        )
+            ->assertStatus(201)
+            ->assertJson([
+                "data" => [
+                   'username'      => 'Andi',
+                   'email'         => 'Andi@pzn.com', 
+                ]
+                ]);
+
+            $user = User::where('username', 'Andi')->first();
+            self::assertNotNull($user->token);
+            self::assertEquals($user->expiresIn, 100000);
+
+
     }
 
     public function testRegisterFailed()
@@ -49,12 +73,12 @@ class UserTest extends TestCase
     {
         $this->testRegisterSuccess();
         $this->post('/api/users', [
-            'username' => 'khannedy',
-            'password' => 'rahasia',
-            'fullname' => 'Eko Kurniawan Khannedy'
+            'username'      => 'khannedy',
+            'password'      => 'rahasia',
+            'fullname'      => 'Eko Kurniawan Khannedy'
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => 'USERNAME_EXISTS'
+            "error" => 'USERNAME_EXISTS'
             ]);        
     }
 
@@ -62,23 +86,23 @@ class UserTest extends TestCase
     {
         $this->testRegisterSuccess();
         $this->post('/api/users', [
-            'username' => 'Renan',
-            'password' => 'rahasia',
-            'fullname' => 'Junaedi',
-            'email' => 'Eko@pzn.com',
+            'username'  => 'Renan',
+            'password'  => 'rahasia',
+            'fullname'  => 'Junaedi',
+            'email'     => 'Eko@pzn.com',
         ])->assertStatus(400)
         ->assertJson([
-            "errors" => 'EMAIL_EXISTS'
+            "error" => 'EMAIL_EXISTS'
             ]);        
     }
 
     public function testRegisterEmailFailed()
     {
         $this->post('/api/users', [
-            'username' => 'Renan',
-            'password' => 'rahasia',
-            'fullname' => 'Muhammad Renan Ainur Rofiq',
-            'email' => 'Ekopzn',
+            'username'  => 'Renan',
+            'password'  => 'rahasia',
+            'fullname'  => 'Muhammad Renan Ainur Rofiq',
+            'email'     => 'Ekopzn',
         ])->assertStatus(400)
         ->assertJson([
             "errors" => [
@@ -93,13 +117,13 @@ class UserTest extends TestCase
     {
         $this->seed([UserSeeder::class]);
         $this->post('/api/users/login', [
-            'email' => 'test@pzn.com',
-            'password' => 'test',
+            'email'         => 'test@pzn.com',
+            'password'      => 'test',
         ])->assertStatus(200)
         ->assertJson([
             "data" => [
-                'email' => 'test@pzn.com',
-                "username" => "test0",
+                'email'         => 'test@pzn.com',
+                "username"      => "test0",
             ]
             ]);
 
@@ -112,11 +136,11 @@ class UserTest extends TestCase
     {
         $this->seed([UserSeeder::class]);
         $this->post('/api/users/login', [
-            'email' => 'renan@tes.com',
-            'password' => 'test',
+            'email'         => 'renan@tes.com',
+            'password'      => 'test',
         ])->assertStatus(401)
         ->assertJson([
-            "errors" => "EMAIL_PASSWORD_WRONG"
+            "error" => "EMAIL_PASSWORD_WRONG"
             ]);
     }
 
@@ -129,9 +153,9 @@ class UserTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
             'data' => [
-                'username' => 'test0',
-                'email' => 'test@pzn.com',
-                'token' => 'test',
+                'username'      => 'test0',
+                'email'         => 'test@pzn.com',
+                'token'         => 'test',
             ]
         ]);
     }
@@ -160,10 +184,10 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test0')->first(); 
 
         $this->patch('/api/users/current', [
-             'username' => $oldUser->username,
-             'password' => 'baru',
-             'email' => $oldUser->email,
-             'phone' => 123412,
+             'username'     => $oldUser->username,
+             'password'     => 'baru',
+             'email'        => $oldUser->email,
+             'phone'        => 123412,
         ],
         [
             'Authorization' => 'test'
@@ -171,7 +195,9 @@ class UserTest extends TestCase
         ->assertStatus(200)
         ->assertJson([
             'data' => [
-                'username' => 'test0',
+                'username'      => 'test0',
+                'email'         => 'test@pzn.com',
+                'phone'         => '123412',
             ]
         ]);
 
@@ -185,15 +211,15 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test0')->first(); 
 
         $this->patch('/api/users/current', [
-             'username' => 'test100',
-              'password' => 'baru',
+             'username'      => 'test100',
+             'password'      => 'baru',
         ],
         [
             'Authorization' => 'test'
         ])
         ->assertStatus(400)
         ->assertJson([
-            "errors"=> "USERNAME_EXISTS"
+            "error"=> "USERNAME_EXISTS"
         ]);
     }
 
@@ -203,16 +229,16 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test')->first(); 
 
         $this->patch('/api/users/current', [
-             'username' => 'Kafka',
-             'email' => 'test1@pzn.com',
-             'password' => 'baru',
+             'username'      => 'Kafka',
+             'email'         => 'test1@pzn.com',
+             'password'      => 'baru',
         ],
         [
             'Authorization' => 'test'
         ])
         ->assertStatus(400)
         ->assertJson([
-            "errors"=> "EMAIL_EXISTS"
+            "error"=> "EMAIL_EXISTS"
         ]);
     }
 
@@ -221,12 +247,12 @@ class UserTest extends TestCase
         $oldUser = User::where('username', 'test100')->first(); 
 
         $this->patch('/api/users/current', [
-            'username' => 'test1',
-            'email' => 'test1@hotmail.com',
-            'password' => 'hadir',
-            'phone' => 123213123,
-            'token' => 'test',
-            'expiresIn' => NULL,
+            'username'      => 'test1',
+            'email'         => 'test1@hotmail.com',
+            'password'      => 'hadir',
+            'phone'         => 123213123,
+            'token'         => 'test',
+            'expiresIn'     => NULL,
         ],
         [
             'Authorization' => 'test'
@@ -234,10 +260,10 @@ class UserTest extends TestCase
         ->assertStatus(200)
         ->assertJson([
             'data' => [
-            'username' => 'test1',
-            'email' => 'test1@hotmail.com',
-            'token' => 'test',
-            'expiresIn' => NULL,
+            'username'      => 'test1',
+            'email'         => 'test1@hotmail.com',
+            'token'         => 'test',
+            'expiresIn'     => NULL,
             ]
         ]);
 
@@ -249,7 +275,7 @@ class UserTest extends TestCase
         $this->seed([UserSeeder::class]);   
 
         $this->patch('/api/users/current', [
-             'username' => 'sadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadssadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsad'
+             'username'     => 'sadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadssadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadadsadsadsadsadsadadsadsadsadsadadsadsadsadadsadsadsadsadsadadsadsadsadadsadsadsadsadsadadsadsadsadsadadsadsadsadsadadsadsadsadadsadsadsadsadsadadsadsadsadadsadsadsadadsadsadsadsadsadadadsadsadsadsadadsadsadsadsadadsadsadsadadsadsadsadadsad'
         ],
         [
             'Authorization' => 'test'

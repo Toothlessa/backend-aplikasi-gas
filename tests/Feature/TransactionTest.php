@@ -19,101 +19,310 @@ class TransactionTest extends TestCase
 {
     public function testCreateSuccess()
     {
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class, StockItemSeeder::class, CustomerSeeder::class]);
+        $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class
+                ]);
         
-        $masterItem = MasterItem::query()->limit(1)->first();
-        $customer = Customer::query()->limit(1)->first();
+        $masterItem = MasterItem::query()->first();
+        $customer   = Customer::query()->first();
 
-        $this->post('/api/transactions', 
-        [
-            'item_id' => $masterItem->id,
-            'customer_id' =>$customer->id,
-            'quantity' => '3',
-            'stock' => '3',
-            'description' => 'Test Description',
-            'amount' => 19000,
-            'total' => 19000 * 3,
-        ],
+        $payload =  [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '3',
+            'description'   => 'Test Description',
+            'amount'        => 19000,
+            'payment_method'=> 'CASH',
+            'paid_amount'   => 19000,
+        ];
+
+        $this->post('/api/transactions/', $payload,
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 201)
         ->assertJson([
             "data" => [
-            'quantity' => '3',
-            'description' => 'Test Description',
-            'amount' => 19000,
-            'total' => 19000 * 3,
+                'nik'           => $customer->nik,
+                'customer_name' => $customer->customer_name,
+                'item_name'     => $masterItem->item_name,
+                'quantity'      => '3',
+                'description'   => 'Test Description',
+                'amount'        => 19000,
+                'total'         => 19000 * 3,
+                'payment_method'=> 'CASH',
+                'paid_amount'   => 19000 * 3,
             ]
         ]);
     }
 
-    public function testCreateSuccess2()
-    {
+    public function testCreateTransactionPartialPayment(){
+        $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class
+                ]);
 
-        $this->testCreateSuccess();
-        
         $masterItem = MasterItem::query()->first();
         $customer = Customer::query()->first();
 
-        $this->post('/api/transactions', 
-        [
-            'item_id' => $masterItem->id,
-            'customer_id' =>$customer->id,
-            'quantity' => '3',
-            'stock' => '3',
-            'description' => 'Test Description',
-            'amount' => 19000,
-            'total' => 19000 * 3,
-        ],
+        $payload = [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '2',
+            'description'   => 'Test Partial',
+            'amount'        => 19000,
+            'payment_method'=> 'PARTIAL',
+            'paid_amount'   => 5000,
+        ];
+
+        $this->post('/api/transactions', $payload,
         [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-            'quantity' => '3',
-            'description' => 'Test Description',
-            'amount' => 19000,
-            'total' => 19000 * 3,
+                'nik'           => $customer->nik,
+                'customer_name' => $customer->customer_name,
+                'item_name'     => $masterItem->item_name,
+                'quantity'      => '2',
+                'description'   => 'Test Partial',
+                'amount'        => 19000,
+                'total'         => 19000 * 2,
+                'payment_method'=> 'PARTIAL',
+                'paid_amount'   => 5000,
             ]
         ]);
     }
 
-    public function testUpdateSuccess()
+    public function testCreateSuccessNewTransaction()
     {
-        $this->testCreateSuccess2();
-        $transaction = Transaction::query()->first();
-        $customer = Customer::where("customer_name", "renan")->first();
+        $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class
+                ]);
+        
+        $masterItem = MasterItem::query()->first();
+        $customer   = Customer::query()->first();
 
-        $this->patch('/api/transactions/' .$transaction->id, 
-        [ 
-            'stock_id' => $transaction->stock_id,
-            'customer_id' => $customer->id,
-            'stock' => 4,
-            'quantity' => 4,
-            'description' => 'Update Description',
-            'amount' => 10000,
-            'total' => 10000 * 3,
-        ],
+        $payload =  [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '1',
+            'description'   => 'Create New Transaction',
+            'amount'        => 19000,
+            'payment_method'=> 'CASH',
+            'paid_amount'   => 19000,
+        ];
+        $this->post('/api/transactions', $payload,
         [
             'Authorization' => 'test'
-        ])->assertStatus(status: 200)
+        ])->assertStatus(201)
         ->assertJson([
-           'data' => [
-                'stock_id' => $transaction->stock_id,
-                'customer_id' => $customer->id,
-                'quantity' => '4',
-                'description' => 'Update Description',
-                'amount' => 10000,
-                'total' => 10000 * 3,
+            "data" => [
+                'nik'           => $customer->nik,
+                'customer_name' => $customer->customer_name,
+                'item_name'     => $masterItem->item_name,
+                'quantity'      => '1',
+                'description'   => 'Create New Transaction',
+                'amount'        => 19000,
+                'total'         => 19000 * 1,
+                'payment_method'=> 'CASH',
+                'paid_amount'   => 19000,
             ]
         ]);
+    }
+
+    public function testCreateQuantityMinus(){
+        $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class
+                ]);
+
+        $masterItem = MasterItem::query()->first();
+        $customer = Customer::query()->first();
+
+        $payload =  [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '-1',
+            'description'   => 'Create New Transaction',
+            'amount'        => 19000,
+            'payment_method'=> 'CASH',
+            'paid_amount'   => 19000,
+        ];
+
+        $this->postJson(
+            '/api/transactions',
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [ 
+                'quantity' => [
+                    'The quantity field must be at least 1.'
+                ]
+            ]
+            ]);
+    }
+
+    public function testCreateAmountMinus(){
+        $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class
+                ]);
+        
+        $masterItem = MasterItem::query()->first();
+        $customer = Customer::query()->first();
+
+        $payload =  [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '1',
+            'description'   => 'Create New Transaction',
+            'amount'        => -19000,
+            'payment_method'=> 'CASH',
+            'paid_amount'   => 19000,
+        ];
+
+        $this->postJson(
+            '/api/transactions',
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [ 
+                'amount' => [
+                    'The amount field must be at least 0.'
+                ]
+            ]
+            ]);
+    }
+    public function testUpdateSuccess(){
+       $this->seed([
+                    UserSeeder::class, 
+                    CategoryItemSeeder::class, 
+                    MasterItemSeeder::class, 
+                    StockItemSeeder::class, 
+                    CustomerSeeder::class,
+                    TransactionSeeder::class,
+                ]);
+
+        $transaction    = Transaction::first();
+        $customer       = Customer::where('customer_name', 'renan')->first();
+        $masterItem     = MasterItem::query()->first();
+
+        $payload =  [
+            'item_id'       => $masterItem->id,
+            'customer_id'   => $customer->id,
+            'quantity'      => '3',
+            'description'   => 'Test Update Description',
+            'amount'        => 19000,
+            'payment_method'=> 'CASH',
+            'paid_amount'   => 19000,
+        ];
+
+        $this->patchJson(
+            "/api/transactions/{$transaction->id}",
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'nik'           => $customer->nik,
+                'customer_name' => $customer->customer_name,
+                'item_name'     => $masterItem->item_name,
+                'quantity'      => '3',
+                'description'   => 'Test Update Description',
+                'amount'        => 19000,
+                'total'         => 19000 * 3,
+                'payment_method'=> 'CASH',
+                'paid_amount'   => 19000 * 3,
+            ]
+        ]);
+    }
+
+    public function testUpdateQuantityMinus(){
+        $this->testCreateSuccess2();
+
+        $transaction = Transaction::first();
+        $customer = Customer::where('customer_name', 'renan')->first();
+
+        $payload = [
+            'customer_id' => $customer->id,
+            'description' => 'Update Description',
+            'amount' => 10000,
+            'quantity' => -10,
+        ];
+
+        $this->patchJson(
+            "/api/transactions/{$transaction->id}",
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [ 
+                'quantity' => [
+                    'The quantity field must be at least 1.'
+                ]
+            ]
+            ]);
+    }
+
+    public function testUpdateAmountMinus(){
+        $this->testCreateSuccess2();
+
+        $transaction = Transaction::first();
+        $customer = Customer::where('customer_name', 'renan')->first();
+
+        $payload = [
+            'customer_id' => $customer->id,
+            'description' => 'Update Description',
+            'amount' => -10000,
+            'quantity' => 10,
+        ];
+
+        $this->patchJson(
+            "/api/transactions/".$transaction->id,
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [ 
+                'amount' => [
+                    'The amount field must be at least 0.'
+                ]
+            ]
+            ]);
     }
 
     public function testgetTodayTransaction()
     {
-        $this->seed(
-            [UserSeeder::class, CategoryItemSeeder::class, 
-            MasterItemSeeder::class, CustomerSeeder::class, TransactionSeeder::class,
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class, 
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
         ]);
 
         $response = $this->get('/api/transactions/date/', 
@@ -127,13 +336,18 @@ class TransactionTest extends TestCase
 
     public function testgetTomorrowTransaction()
     {
-        $this->seed(
-            [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class,
-                    CustomerSeeder::class, TransactionSeeder::class,
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class,
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
         ]);
-        $date=Carbon::tomorrow();
 
-        $response = $this->get('/api/transactions/date/'.'2025-01-23',//.$date, 
+         $date = Carbon::tomorrow()->toDateString(); // YYYY-MM-DD
+
+
+        $response = $this->get('/api/transactions/date/'.$date,
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -141,12 +355,36 @@ class TransactionTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
+
+    public function testgetYesterdayTransaction()
+    {
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class,
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
+        ]);
+
+         $date = Carbon::yesterday()->toDateString(); // YYYY-MM-DD
+
+        $response = 
+            $this->get('/api/transactions/date/'.$date,[
+                'Authorization' => 'test'
+            ])->assertStatus(status: 200)
+            ->Json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
     
     public function testGetOutsandingTransaction()
     {
-        $this->seed(
-            [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class,
-                    CustomerSeeder::class, TransactionSeeder::class,
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class,
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
         ]);
         //2025-01-22 00:00:00
 
@@ -160,13 +398,15 @@ class TransactionTest extends TestCase
     }
 
     public function testGetDailySale() {
-        $this->seed(
-            [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class, 
-                    CustomerSeeder::class, TransactionSeeder::class,
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class, 
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
         ]);
-        $item = MasterItem::where('item_name', 'test')->first();
 
-        $response = $this->get('api/transactions/dailysale',
+        $response = $this->get('api/transactions/chart/daily-sale',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
@@ -176,13 +416,15 @@ class TransactionTest extends TestCase
     }
 
     public function testGetTopCustomer() {
-        $this->seed(
-            [UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class, 
-                    CustomerSeeder::class, TransactionSeeder::class,
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class, 
+            CustomerSeeder::class, 
+            TransactionSeeder::class,
         ]);
-        $item = MasterItem::where('item_name', 'test')->first();
 
-        $response = $this->get('api/transactions/topcustomer',
+        $response = $this->get('api/transactions/chart/top-customer',
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)

@@ -10,78 +10,111 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 class AssetService
 {
     protected $repository;
-    protected $masterItemRepository;
-    protected $stockItemRepository;
+    protected $assetOwnerService;
+    protected $masterItemService;
 
-    public function __construct( AssetRepository $repository,
-                                  MasterItemRepository $masterItemRepository,
-                                  StockItemRepository $stockItemRepository) 
+    public function __construct(    AssetRepository $repository, 
+                                    AssetOwnerService $assetOwnerService,
+                                    MasterItemService $masterItemService
+                                 ) 
     {
         $this->repository = $repository;
-        $this->masterItemRepository  = $masterItemRepository;
-        $this->stockItemRepository = $stockItemRepository;
+        $this->assetOwnerService = $assetOwnerService;
+        $this->masterItemService  = $masterItemService;
     }
 
-    public function create($data, $user)
-    {
-        $masterItem = $this->masterItemRepository->findById($data['item_id']);
+    public function create($data, $user) {
+        #validate data
+        $assetOwner = $this->assetOwnerService->findById($data["owner_id"]);
+        $masterItem = $this->masterItemService->findById($data['item_id']);
 
-        // 3. Prepare stock item data
-        $newData = array_merge($data, [
-            'item_id'      => $masterItem->id,
-            'cogs'         => $masterItem->cost_of_goods_sold,
-            'selling_price'=> $masterItem->selling_price * $data['quantity'],
-            'created_by'   => $user->id,
-        ]);
+        $asset = [
+            # Frontend Input
+            'quantity'          => $data['quantity'],
+            'cogs'              => $data['cogs'],
+            'selling_price'     => $data['selling_price'],
+            'description'       => $data['description'],
+            # Backend Process and Validate
+            'owner_id'          => $assetOwner->id,
+            'item_id'           => $masterItem->id,
+            'created_by'        => $user->id,
+        ];
 
-        $asset = $this->repository->create($newData);
-        return $asset;
+        return $this->repository->create($asset);
     }
 
     public function update($id, $data, $user)
     {
-        $asset = $this->repository->findById($id);
-
-        $masterItem = $this->masterItemRepository->findById($data['item_id']);
+        # Validate Data
+        $asset      = $this->findById($id);
+        $assetOwner = $this->assetOwnerService->findById($data["owner_id"]);
+        $masterItem = $this->masterItemService->findById($data['item_id']);
         
-         // 3. Prepare stock item data
-        $newData = array_merge($data, [
-            'item_id'      => $masterItem->id,
-            'cogs'         => $masterItem->cost_of_goods_sold,
-            'selling_price'=> $masterItem->selling_price,
-            'updated_by' => $user->id,
-        ]);
+        $newAsset = [
+            # Frontend Input
+            'quantity'          => $data['quantity'],
+            'cogs'              => $data['cogs'],
+            'selling_price'     => $data['selling_price'],
+            'description'       => $data['description'],
+            # Backend Process and Validate
+            'owner_id'          => $assetOwner->id,
+            'item_id'       => $masterItem->id,
+            'updated_by'    => $user->id,
+        ];
 
-        $asset = $this->repository->update($asset,$newData);
-
-        return $asset;
-        
+        return $this->repository->update($asset, $newAsset);
     }
 
-    public function summaryAssetOwner()
+    public function findById($id)
     {
-        $data = $this->repository->summaryAssetOwner();
+        $asset = $this->repository->findById($id);
 
-        if(!$data) {
+        if(!$asset) {
             throw new HttpResponseException(response()->json([
-                "errors" => "SUMMARY_ASSET_OWNER_NOT_FOUND"
+                "error" => "ASSET_NOT_FOUND"
             ])->setStatusCode(404));
         }
 
-        return $data;
+        return $asset;
+    }
+
+    public function getSummaryAssetByOwner()
+    {
+        $summaryAssetByOwner = $this->repository->getSummaryAssetByOwner();
+
+        if(!$summaryAssetByOwner) {
+            throw new HttpResponseException(response()->json([
+                "error" => "SUMMARY_ASSET_OWNER_NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+
+        return $summaryAssetByOwner;
 
     }
 
     public function getDetailAsset($ownerId, $itemId)
     {
-        $data = $this->repository->getDetailAsset($ownerId, $itemId);
+        $detailAsset = $this->repository->getDetailAsset($ownerId, $itemId);
 
-        if(!$data) {
+        if(!$detailAsset) {
             throw new HttpResponseException(response()->json([
-                "errors" => "DETAIL_ASSET_NOT_FOUND"
+                "error" => "DETAIL_ASSET_NOT_FOUND"
             ])->setStatusCode(404));
         }
 
-        return $data;
+        return $detailAsset;
+    }
+
+    public function getSummaryAssetByItemId($itemId)
+    {
+        $summaryAssetByItemId = $this->repository->getSummaryAssetByItemId($itemId);
+
+        if(!$summaryAssetByItemId) {
+            throw new HttpResponseException(response()->json([
+                "error" => "SUMMARY_ASSET_NOT_FOUND"
+            ])->setStatusCode(404));
+        }
+
+        return $summaryAssetByItemId;
     }
 }

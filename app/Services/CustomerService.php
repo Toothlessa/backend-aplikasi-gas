@@ -26,13 +26,19 @@ class CustomerService
         }
 
         $this->validateCustomerNik($data['nik']);
+        $this->validateCustomerEmail($data['email']);
 
-        $newData = array_merge($data, [
-            'created_by' => $user->id,
-        ]);
-
-        $customer = $this->repository->create($newData);
-        return $customer;
+        $customer = [
+            'customer_name'     => $data['customer_name'],
+            'customer_type'     => $data['customer_type'],
+            'nik'               => $data['nik'],
+            'email'             => $data['email'],
+            'address'           => $data['address'],
+            'phone'             => $data['phone'],
+            'created_by'        => $user->id,
+        ];
+       
+        return $this->repository->create($customer);
     }
 
     public function update($id, $data, $user)
@@ -54,11 +60,17 @@ class CustomerService
             $this->validateCustomerNik($data['nik']);
         }
 
-        $newData = array_merge($data, [
-            'updated_by' => $user->id,
-        ]);
+        $newCustomer = [
+            'customer_name'     => $data['customer_name'],
+            'customer_type'     => $data['customer_type'],
+            'nik'               => $data['nik'],
+            'email'             => $data['email'],
+            'address'           => $data['address'],
+            'phone'             => $data['phone'],
+            'updated_by'        => $user->id,
+        ];
 
-        return $this->repository->update($customer,$newData);
+        return $this->repository->update($customer,$newCustomer);
         
     }
 

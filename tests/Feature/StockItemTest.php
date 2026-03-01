@@ -4,28 +4,25 @@ namespace Tests\Feature;
 
 use App\Models\MasterItem;
 use App\Models\StockItem;
-use Carbon\Carbon;
 use Database\Seeders\AssetOwnerSeeder;
 use Database\Seeders\AssetSeeder;
 use Database\Seeders\CategoryItemSeeder;
 use Database\Seeders\MasterItemSeeder;
 use Database\Seeders\StockItemSeeder;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
-
-use function PHPUnit\Framework\assertEquals;
-use function PHPUnit\Framework\assertJson;
-use function PHPUnit\Framework\assertNotNull;
 
 class StockItemTest extends TestCase
 {
     
-    public function testInputStockSuccess()
+    public function testCreateNewStockSuccess()
     {
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
+        $this->seed([
+            UserSeeder::class, 
+            CategoryItemSeeder::class, 
+            MasterItemSeeder::class]);
+        
         $masterItem = MasterItem::query()->first();
 
         $this->post('/api/stockitems/' .($masterItem->id), [
@@ -41,9 +38,32 @@ class StockItemTest extends TestCase
         ]);
     }
 
+    public function testInputStockMinus(){
+        $this->testCreateNewStockSuccess();
+        $masterItem = MasterItem::query()->first();
+
+        $payload = [
+            'stock' => -1
+        ];
+
+        $this->postJson(
+            '/api/stockitems/' .($masterItem->id),
+            $payload,
+            ['Authorization' => 'test']
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [
+                'stock' => [
+                    'The stock field must be at least 1.'
+                ]
+            ]
+        ]);
+    }
+
     public function testUpdateStockSuccess()
     {
-        $this->testInputStockSuccess();
+        $this->testCreateNewStockSuccess();
         $masterItem = MasterItem::query()->first();
         $stockInput = StockItem::where('item_id', $masterItem->id)->first();
 
@@ -62,12 +82,12 @@ class StockItemTest extends TestCase
         ]);
     }
 
-    public function testGetCurrenStock()
+    public function testGetCurrentStock()
     {
-        $this->testInputStockSuccess();
+        $this->testCreateNewStockSuccess();
 
         $masterItem = MasterItem::query()->first();
-        $response = $this->get('api/stockitems/currentstock/'.$masterItem->id, 
+        $response = $this->get('api/stockitems/current/'.$masterItem->id, 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -78,10 +98,10 @@ class StockItemTest extends TestCase
 
     public function testGetCurrentNoParameterStock()
     {
-        $this->testInputStockSuccess();
+        $this->testCreateNewStockSuccess();
 
         // $masterItem = MasterItem::query()->first();
-        $response = $this->get('api/stockitems/currentstock/',
+        $response = $this->get('api/stockitems/current/',
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -92,16 +112,29 @@ class StockItemTest extends TestCase
 
     public function testGetDetailStock()
     {
-        $this->testInputStockSuccess();
+        $this->testCreateNewStockSuccess();
         $masterItem = MasterItem::query()->first();
 
-        $response = $this->get('api/stockitems/detailstock/'.$masterItem->id, 
+        $response = $this->get('api/stockitems/detail/'.$masterItem->id, 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
         ->Json();
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+    }
+
+    public function testGetDetailStockNotFound() {
+        $this->testCreateNewStockSuccess();
+        $stock = StockItem::query()->orderByDesc('id')->first();
+
+        $this->get('api/stockitems/detail/'.$stock->id+100, 
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(status: 404)
+        ->assertJson([
+            'error' => 'DETAIL_STOCK_NOT_FOUND',
+        ]);
     }
 
     public function testGetDisplayStock() {
@@ -113,7 +146,7 @@ class StockItemTest extends TestCase
 
         $emptyGas  = MasterItem::where('item_name', 'GAS LPG 3KG KOSONG')->first();
 
-        $response = $this->get('api/stockitems/displaystock/'.$filledGas->id.'/'.$emptyGas->id, 
+        $response = $this->get('api/stockitems/display/'.$filledGas->id.'/'.$emptyGas->id, 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)

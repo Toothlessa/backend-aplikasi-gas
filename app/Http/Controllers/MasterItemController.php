@@ -7,10 +7,8 @@ use App\Http\Requests\MasterItem\MasterItemUpdateRequest;
 use App\Http\Resources\MasterItem\MasterItemCollection;
 use App\Http\Resources\MasterItem\MasterItemResource;
 use App\Services\MasterItemService;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class MasterItemController extends Controller
 {
@@ -75,11 +73,12 @@ class MasterItemController extends Controller
         return (new MasterItemCollection($masterItem))->response()->setStatusCode(200);
     }
 
-    public function inactiveItem($id): MasterItemResource {
+    public function inactiveItem($id)
+    {
         $user = Auth::user();
         
         $masterItem = $this->service->inactiveItem($id, $user);
     
-        return new MasterItemResource($masterItem);
+        return (new MasterItemResource($masterItem))->response()->setStatusCode(200);
     }
 }

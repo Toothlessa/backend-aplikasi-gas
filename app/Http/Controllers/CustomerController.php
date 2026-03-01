@@ -36,7 +36,7 @@ class CustomerController extends Controller
         $data = $request->validated();
 
         $customer = $this->service->update($id, $data, $user);
-        return new CustomerResource($customer);
+        return (new CustomerResource($customer))->response()->setStatusCode(200);
     }
 
     public function get($id)
@@ -48,12 +48,12 @@ class CustomerController extends Controller
         return (new CustomerResource($customer))->response()->setStatusCode(200);
     }
 
-    public function getAll(): CustomerCollection
+    public function getAll()
     {
         $user = Auth::user();
         $customer = $this->service->getAllCustomer();
 
-        return new CustomerCollection($customer);
+        return (new CustomerCollection($customer))->response()->setStatusCode(200);
     }
 
     public function search(Request $request)
@@ -70,7 +70,7 @@ class CustomerController extends Controller
         
         $customer = $this->service->inactiveCustomer($id,$user);
 
-        return new CustomerResource($customer);
+        return (new CustomerResource($customer))->response()->setStatusCode(200);
     }
 
     public function importCsv(CustomerImportCsvRequest $request)
@@ -83,7 +83,7 @@ class CustomerController extends Controller
             return response()->json([
                 'message' => 'CSV imported successfully',
                 'total_success' => $csvImport
-            ]);
+            ])->setStatusCode(200);
         } catch (\Exception $error) {
             return response()->json(['message' => 'Error importing CSV: ' . $error->getMessage()], 500);
         }

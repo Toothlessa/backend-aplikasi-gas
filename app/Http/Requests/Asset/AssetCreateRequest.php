@@ -19,10 +19,12 @@ class AssetCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'owner_id' => ['required'],
-            'item_id' => ['required', 'numeric'],
-            'quantity' => ['required', 'numeric'],
-            'description' => ['nullable', 'max:100'],
+            'owner_id'              => ['required'],
+            'item_id'               => ['required', 'numeric'],
+            'cogs'                  => ['required', 'numeric', 'min:0'],
+            'selling_price'         => ['required', 'numeric', 'min:0'],
+            'quantity'              => ['required', 'numeric'],
+            'description'           => ['nullable', 'max:100'],
         ];
     }
 

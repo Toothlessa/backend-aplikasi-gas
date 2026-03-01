@@ -14,7 +14,7 @@ class StockItemDisplayStockResource extends JsonResource
     {
         return [
             'running_stock'   => $this['running_stock'],
-            'yesterday_stock' => $this['yeterday_stock'], // sesuai nama di function kamu
+            'yesterday_stock' => $this['yesterday_stock'],
             'empty_gas'       => $this['empty_gas'],
             'gas_owned'       => $this['gas_owned'],
         ];

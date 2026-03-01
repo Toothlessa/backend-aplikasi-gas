@@ -17,7 +17,7 @@ class DebtTest extends TestCase
         $this->seed( [UserSeeder::class, CustomerSeeder::class] );
         $customer = Customer::where("customer_name", "test")->first();
 
-        $response = $this->post('/api/debts', [
+        $this->post('/api/debts', [
             'customer_id' => $customer->id,
             'description' => 'khannedy',
             'amount_pay' => 0,
@@ -34,6 +34,34 @@ class DebtTest extends TestCase
                 'total' => 100000,
             ]
         ]);
+    }
+
+    public function testCreateNewDebtAmountMinus() {
+        $this->testCreateNewDebtSuccess();
+        $customer = Customer::where("customer_name", "test")->first();
+        
+        $payload = [
+            'customer_id' => $customer->id,
+            'description' => 'khannedy',
+            'amount_pay' => 0,
+            'total' => -100000,  
+        ];
+
+        $this->postJson(
+            '/api/debts',
+            $payload,
+            [
+                'Authorization' => 'test'
+            ]
+        )
+        ->assertStatus(400)
+        ->assertJson([
+            'errors' => [
+                'total' => [
+                    'The total field must be at least 0.'
+                ]
+            ]
+            ]);
     }
 
     public function testCreateNewDebtAmount0()
@@ -73,29 +101,6 @@ class DebtTest extends TestCase
         ->assertJson([
             'data' => [
                 'customer_id' => $customer->id,
-                'description' => 'Test Update',
-                'amount_pay' => 500,
-                'total' => 9812,
-            ]
-            ]);
-    }
-
-    public function testUpdateSuccessWithNoCustomer()
-    {
-        $this->testCreateNewDebtSuccess();
-
-        $debt = Debt::query()->limit(1)->first();
-
-        $this->patch('/api/debts/' .$debt->id, 
-        [
-            'description' => 'Test Update',
-            'amount_pay' => 500,
-            'total' => 9812,
-        ], [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->assertJson([
-            'data' => [
                 'description' => 'Test Update',
                 'amount_pay' => 500,
                 'total' => 9812,

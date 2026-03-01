@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class AssetRepository
 {   
-    public function create($data)
+    public function create($data): Asset
     {
         return Asset::create($data);
     }
@@ -26,11 +26,10 @@ class AssetRepository
 
     public function sumQtyByAssetId($id)
     {
-       return Asset::where('id', $id)
-                        ->sum('quantity');
+       return Asset::where('id', $id)->sum('quantity');
     }
 
-    public function summaryAssetOwner() {
+    public function getSummaryAssetByOwner() {
 
     return DB::table('assets')
             ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
