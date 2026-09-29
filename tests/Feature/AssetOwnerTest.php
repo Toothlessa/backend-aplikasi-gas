@@ -79,7 +79,7 @@ class AssetOwnerTest extends TestCase
 
         $this->seed([UserSeeder::class, AssetOwnerSeeder::class]);
 
-        $response = $this->get('/api/assetowners',
+        $response = $this->get('/api/assetowners/all',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)

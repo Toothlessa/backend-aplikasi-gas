@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionType;
 use App\Repositories\TransactionRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 /**
  * TransactionService
@@ -58,165 +60,255 @@ class TransactionService
      * - generate trx number
      * - create transaction
      */
-    public function createTransaction($data)
-    {
+    public function autoCreateTransaction($data)
+{
+    Log::info('TransactionService:autoCreateTransaction started', [
+        'item_id'           => $data['item_id'],
+        'customer_id'       => $data['customer_id'],
+        'quantity'          => $data['quantity']
+    ]);
+
+    try {
+
         return DB::transaction(function () use ($data) {
 
             # validate data existence
-            $masterItem     = $this->masterItemService->findById($data['item_id']);
-            $customer       = $this->customerService->getCustomerById($data['customer_id']);
+            $masterItem = $this->masterItemService->findById($data['item_id']);
+            $customer   = $this->customerService->getCustomerById($data['customer_id']);
+
+            Log::debug('TransactionService:master data loaded', [
+                'master_item_id'    => $masterItem->id,
+                'customer_id'       => $customer->id
+            ]);
 
             /**
              * Transform data stock
              * - Sales → stock decrease (minus)
              */
-            $qtyStock           = -$data['quantity'];
-            $sellingPrice       = $data['amount'];
+            # master
+            $customerId             = $customer->id;
+            $itemId                 = $masterItem->id;
+            $cogs                   = $masterItem->cost_of_goods_sold;
+            # data
+            $salesQuantity          = $this->resolveStockDirection(TransactionType::SALES, $data['quantity']);
+            $transactionQuantity    = $this->resolveStockDirection(TransactionType::TRANSACTION, $data['quantity']);
+            $amount                 = $data['amount'];
+            $description            = $data['description'] ?? null;
+            $paymentMethod          = $data['payment_method'];
+            $paidAmount             = $data['paid_amount'];
 
             # Create New Record Stock
             $newStock = $this->stockItemService->autoStockFromTransaction(
-                $masterItem->id,
-                $qtyStock,
-                $sellingPrice,
-                $masterItem->cost_of_goods_sold
+                $itemId,
+                $salesQuantity,
+                $amount,
+                $cogs
             );
 
+            # get new stock id 
+            $newStockId     = $newStock->id;
+
+            Log::debug('TransactionService:stock created from transaction', [
+                'stock_id' => $newStockId,
+                'qty_stock' => $salesQuantity
+            ]);
+
             # Generate Transaction Number
-            $trx_number = $this->generateTrxNumber($masterItem->id);
+            $trxNumber = $this->generateTrxNumber($itemId);
 
             /**
              * Transform and load payload transaction
-             * all calculation is done in service and models
-             * not in controller or repository
              */
             $dataTransaction = [
-                'item_id'       => $masterItem->id,
-                'customer_id'   => $customer->id,
-                'trx_number'    => $trx_number,
-                'stock_id'      => $newStock->id,
-                'quantity'      => $data['quantity'],
-                'amount'        => $data['amount'],
-                'description'   => $data['description'],
+                'item_id'       => $itemId,
+                'customer_id'   => $customerId,
+                'trx_number'    => $trxNumber,
+                'stock_id'      => $newStockId,
+                'quantity'      => $transactionQuantity,
+                'amount'        => $amount,
+                'description'   => $description,
             ];
 
             # create transaction
             $transaction = $this->repository->create($dataTransaction);
 
+            Log::info('TransactionService:transaction created', [
+                'transaction_id'    => $transaction->id,
+                'trx_number'        => $trxNumber
+            ]);
+
             /**
              * Transform data receivable
-             * - Auto create data receivable from transaction
              */
 
-            # Prepare receivable data
             $dataReceivable = [
-                'customer_id'       => $customer->id,
-                'item_id'           => $masterItem->id,
-                'quantity'          => $data['quantity'],
-                'price'             => $data['amount'],
-                'payment_method'    => $data['payment_method'],
-                'paid_amount'       => $data['paid_amount'],
-                'description'       => $data['description'],
-                # source and source_id handled in morph models
+                'customer_id'       => $customerId,
+                'item_id'           => $itemId,
+                'quantity'          => $transactionQuantity,
+                'price'             => $amount,
+                'payment_method'    => $paymentMethod,
+                'paid_amount'       => $paidAmount,
+                'description'       => $description,
             ];
 
             # Auto create receivable from transaction
-            $this->receivableService->autoCreateReceivableFromTransaction($transaction, $dataReceivable);
+            $this->receivableService->autoCreateReceivableFromTransaction(
+                $transaction,
+                $dataReceivable
+            );
 
-            // return [
-            //     'customer'              => $customer,
-            //     'master_item'           => $masterItem,
-            //     'transaction'           => $transaction,
-            //     'receivable_payment'    => $receivable->receivablePayment->first(),
-            // ];
-            return $transaction->load([
+            Log::info('TransactionService:receivable created from transaction', [
+                'transaction_id' => $transaction->id
+            ]);
+
+            return $transaction->fresh([
                 'customer',
                 'masterItem',
+                'receivables.receivableItems',
                 'receivables.receivablePayment'
             ]);
 
         });
+
+    } catch (\Throwable $e) {
+
+        Log::error('TransactionService:createTransaction failed', [
+            'error' => $e->getMessage(),
+            'payload' => $data
+        ]);
+
+        throw $e;
     }
+}
 
     /**
      * Update transaction & dependant stock
      *
      * update transaction cannot stand alone
-     * because transaction is depend on stock
+     * because transaction is depend on stock.
+     * Mirrors the same atomic flow as createTransaction.
      */
-//     public function updateTransaction(int $id, array $data)
-//     {
-//         return DB::transaction(function () use ($id, $data) {
+    public function autoUpdateTransaction(int $id, array $data)
+    {
+        Log::info('TransactionService:updateTransaction started', [
+            'transaction_id' => $id,
+            'item_id'        => $data['item_id'],
+            'customer_id'    => $data['customer_id'],
+            'quantity'       => $data['quantity'],
+        ]);
 
-//             # get and validate existence data
-//             $transaction = $this->getTransactionById($id);
-//             $customer    = $this->customerService->getCustomerById($data['customer_id']);
-//             $masterItem  = $this->masterItemService->findById($data['item_id']);
-//             $stock       = $this->stockItemService->findById($transaction->stock_id);
-//             /**
-//              * Re-calculate data transaction
-//              * Prepare transaction data
-//              */
-//             $dataTrx = [
-//                 'item_id'       => $masterItem->id,
-//                 'customer_id'   => $customer->id,
-//                 'quantity'      => $data['quantity'],
-//                 'amount'        => $data['amount'],
-//                 'description'   => $data['description'],
-//                 'stock_id'      => $stock->id,
-//             ];
+        try {
 
-//             # update transaction
-//             $this->repository->update($transaction, $dataTrx);
+            return DB::transaction(function () use ($id, $data) {
 
-//             /**
-//              * update stock
-//              * -change of stock based on transaction update
-//              */
-//             $newStock = [
-//                 'item_id' => $masterItem->id,
-//                 'stock' => -$data['quantity'],
-//             ];
-//             # update stock
-//             $this->stockItemService->updateStock($stock->id, $newStock);
+                # Get and validate existence data
+                $transaction = $this->getTransactionById($id);
+                $customer    = $this->customerService->getCustomerById($data['customer_id']);
+                $masterItem  = $this->masterItemService->findById($data['item_id']);
+                $stock       = $this->stockItemService->findById($transaction->stock_id);
 
-//               /**
-//              * Transform data receivable
-//              * - Auto create data receivable from transaction
-//              */
+                Log::debug('TransactionService:updateTransaction master data loaded', [
+                    'transaction_id' => $transaction->id,
+                    'master_item_id' => $masterItem->id,
+                    'customer_id'    => $customer->id,
+                    'stock_id'       => $stock->id,
+                ]);
+                /**
+                 * Transform data stock
+                 * - Sales → stock decrease (minus)
+                 */
+                $itemId                 = $masterItem->id;
+                $customerId             = $customer->id;
+                $stockId                = $stock->id;
+                $salesQuantity          = $this->resolveStockDirection(TransactionType::SALES, $data['quantity']);
+                $transactionQuantity    = $this->resolveStockDirection(TransactionType::TRANSACTION, $data['quantity']);
+                $amount                 = $data['amount'];
+                $description            = $data['description'] ?? null;
 
-//             # Prepare receivable data
-//             $dataReceivable = [
-//                 'transaction_id'    => $transaction->id,
-//                 'customer_id'       => $customer->id,
-//                 'item_id'           => $masterItem->id,
-//                 'quantity'          => $data['quantity'],
-//                 'price'             => $data['amount'],
-//                 'payment_method'    => $data['payment_method'],
-//                 'paid_amount'       => $data['paid_amount'],
-//                 'description'       => $data['description'],
-//             ];
-// `
-//             # Prepare receivable data`
+                $paymentMethod          = $data['payment_method'];
+                $paidAmount             = $data['paid_amount'];
 
-//             # Auto create receivable from transaction
-//             $receivable = $this->receivableService->autoUpdateReceivableFromTransaction($dataReceivable);
+                /**
+                 * Prepare transaction payload
+                 * - quantity stored as positive (raw value from request)
+                 * - only the stock record uses the signed/negative direction
+                 */
+                $dataTrx = [
+                    'item_id'     => $itemId,
+                    'customer_id' => $customerId,
+                    'quantity'    => $transactionQuantity,
+                    'amount'      => $amount,
+                    'description' => $description,
+                    'stock_id'    => $stockId,
+                ];
 
-//             // return $transaction;
-//             return [
-//                 'customer'              => $customer,
-//                 'master_item'           => $masterItem,
-//                 'transaction'           => $transaction,
-//                 'receivable_payment'    => $receivable->receivablePayment->first(),
-//             ];
+                # Update transaction record
+                $this->repository->update($transaction, $dataTrx);
 
-//             /**
-//              * Refresh used to:
-//              * - latest data from DB
-//              * - relations are reloaded
-//              */
-//             // return $transaction->refresh();
-//         });
-//     }
+                Log::debug('TransactionService:updateTransaction transaction record updated', [
+                    'transaction_id' => $transaction->id,
+                ]);
+
+                /**
+                 * Update stock
+                 * - Sales direction → stock decreases (negative)
+                 */
+                $newStock = [
+                    'item_id' => $itemId,
+                    'stock'   => $salesQuantity,
+                ];
+
+                $this->stockItemService->updateStock($stockId, $newStock);
+
+                Log::debug('TransactionService:updateTransaction stock updated', [
+                    'stock_id'  => $stockId,
+                    'new_stock' => $newStock['stock'],
+                ]);
+
+                /**
+                 * Prepare receivable payload
+                 * - key 'price' matches autoUpdateReceivableFromTransaction expectation
+                 */
+                $dataReceivable = [
+                    'customer_id'    => $customer->id,
+                    'item_id'        => $masterItem->id,
+                    'quantity'       => $transactionQuantity,
+                    'price'          => $amount,
+                    'payment_method' => $paymentMethod,
+                    'paid_amount'    => $paidAmount,
+                    'description'    => $description,
+                ];
+
+                # Auto-update receivable from transaction
+                $this->receivableService->autoUpdateReceivableFromTransaction($id, $dataReceivable);
+
+                Log::info('TransactionService:updateTransaction receivable updated', [
+                    'transaction_id' => $transaction->id,
+                ]);
+
+                /**
+                 * Return fresh transaction with all relations reloaded,
+                 * identical shape to createTransaction so TransactionResource works correctly.
+                 */
+                return $transaction->fresh([
+                    'customer',
+                    'masterItem',
+                    'receivables.receivableItems',
+                    'receivables.receivablePayment',
+                ]);
+            });
+
+        } catch (\Throwable $e) {
+
+            Log::error('TransactionService:updateTransaction failed', [
+                'transaction_id' => $id,
+                'error'          => $e->getMessage(),
+                'payload'        => $data,
+            ]);
+
+            throw $e;
+        }
+    }
 
     /**
      * Get transaction by ID
@@ -335,5 +427,15 @@ class TransactionService
 
             return $trxNumber;
         });
+    }
+
+    private function resolveStockDirection(TransactionType $type, int $quantity): int
+    {
+        return match($type) {
+            TransactionType::SALES       => -$quantity,  // stok berkurang
+            TransactionType::TRANSACTION => +$quantity,  // stok bertambah
+            TransactionType::RETURN      => +$quantity,  // stok bertambah
+            TransactionType::ADJUST      => +$quantity,  // stok bertambah
+        };
     }
 }

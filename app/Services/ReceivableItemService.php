@@ -38,11 +38,16 @@ class ReceivableItemService
         # validate existence data
         $receivableItem = $this->getReceivableItemByReceivableId($receivableId);
         
+        # Data
+        $itemId     = $data['item_id'];
+        $quantity   = $data['quantity'];
+        $price      = $data['price'];
+        
         # prepare receivable item data
         $receivableItemData = [
-            "item_id"       => $data["item_id"],
-            "quantity"      => $data["quantity"],
-            "price"         => $data["price"],
+            "item_id"       => $itemId,
+            "qty"           => $quantity,
+            "price"         => $price,
             #subtotal was calculated in data model
         ];
 

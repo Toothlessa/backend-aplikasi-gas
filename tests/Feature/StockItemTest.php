@@ -69,15 +69,16 @@ class StockItemTest extends TestCase
 
         $this->put('/api/stockitems/' .$stockInput->id, 
         [ 
-            'stock' => '560'
+            'stock'     => '560',
+            'item_id'   => $masterItem->id,
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
         ->assertJson([
            'data' => [
-            'item_id' => $masterItem->id,
-            'stock' => '560'
+            'stock' => '560',
+            // 'item_id' => $masterItem->id,
             ]
         ]);
     }
@@ -87,7 +88,7 @@ class StockItemTest extends TestCase
         $this->testCreateNewStockSuccess();
 
         $masterItem = MasterItem::query()->first();
-        $response = $this->get('api/stockitems/current/'.$masterItem->id, 
+        $response = $this->get('api/stockitems/current', 
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)

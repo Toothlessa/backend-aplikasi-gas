@@ -141,7 +141,7 @@ class MasterItemTest extends TestCase
             CategoryItemSeeder::class, 
             MasterItemSeeder::class
         ]);
-        $masterItem = MasterItem::query()->first();//where('item_name', 'Gas LPG 3 Kg')->first();
+        $masterItem = MasterItem::where('item_name', 'Gas LPG 3KG')->first();
 
         $this->get('/api/masteritems/' .$masterItem->id, 
         [
@@ -149,9 +149,9 @@ class MasterItemTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
            'data' => [
-                'item_name'          => 'GAS LPG 3KG',
-                'cost_of_goods_sold' => 5000,
-                'selling_price'      => 10000,
+                'item_name'          => 'Gas LPG 3KG',
+                'cost_of_goods_sold' => 16000,
+                'selling_price'      => 19000,
                 ]
         ]);
     }
@@ -300,7 +300,7 @@ class MasterItemTest extends TestCase
          $this->testCreateSuccess1();
          $this->seed([StockItemSeeder::class]);
 
-        $response = $this->get('/api/masteritems', [
+        $response = $this->get('/api/masteritems/all', [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->Json();

@@ -26,6 +26,12 @@ class ReceivableRepository
         return Receivable::find($receivableId);
     }
 
+    public function getReceivableByTransactionId(int $transactionId){
+        return Receivable::where('source_id', $transactionId)
+                         ->where('source_type', (new \App\Models\Transaction)->getMorphClass())
+                         ->first();
+    }
+
     public function getReceivable(){
         return Receivable::all();
     }

@@ -27,5 +27,9 @@ class AppServiceProvider extends ServiceProvider
         config(['app.locale' => 'id']);
         Carbon::setLocale('id');
         date_default_timezone_set('Asia/Jakarta');
+
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            'transaction' => \App\Models\Transaction::class,
+        ]);
     }
 }

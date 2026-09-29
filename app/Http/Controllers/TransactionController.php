@@ -21,16 +21,16 @@ class TransactionController extends Controller
         $this->transactionService = $transactionService;
     }
 
-    public function createTransaction(TransactionCreateRequest $request)
+    public function autoCreateTransaction(TransactionCreateRequest $request)
     {
         # Validate and Call Service
-        $transaction = $this->transactionService->createTransaction($request->validated());
+        $transaction = $this->transactionService->autoCreateTransaction($request->validated());
         #return response
         return (new TransactionResource($transaction))->response()->setStatusCode(201);
     }
 
-    public function updateTransaction(int $id, TransactionUpdateRequest $request) {
-        $transaction = $this->transactionService->updateTransaction(
+    public function autoUpdateTransaction(int $id, TransactionUpdateRequest $request) {
+        $transaction = $this->transactionService->autoUpdateTransaction(
             $id,
             $request->validated()
         );

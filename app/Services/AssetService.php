@@ -110,9 +110,10 @@ class AssetService
         $summaryAssetByItemId = $this->repository->getSummaryAssetByItemId($itemId);
 
         if(!$summaryAssetByItemId) {
-            throw new HttpResponseException(response()->json([
-                "error" => "SUMMARY_ASSET_NOT_FOUND"
-            ])->setStatusCode(404));
+            // throw new HttpResponseException(response()->json([
+            //     "error" => "SUMMARY_ASSET_NOT_FOUND"
+            // ])->setStatusCode(404));
+            return 0;
         }
 
         return $summaryAssetByItemId;

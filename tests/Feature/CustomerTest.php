@@ -276,7 +276,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(21, $response['meta']['total']);
     }
 
     public function testSearchByCustomerNik()
@@ -350,7 +350,7 @@ class CustomerTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
 
         self::assertEquals(5, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(21, $response['meta']['total']);
         self::assertEquals(2, $response['meta']['current_page']);    
     }
 

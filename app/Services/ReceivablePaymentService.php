@@ -37,11 +37,16 @@ class ReceivablePaymentService
         # validate existence data
         $receivablePayment = $this->getReceivablePaymentByReceivableId($receivableId);
         
+        # Data
+        $amount         = $data['amount'];
+        $paymentMethod  = $data['payment_method'];
+        $description    = $data['description'];
+        
         # prepare receivable payment data
         $receivablePaymentData = [
-            "amount"        => $data["amount"],
-            "payment_method"=> $data["payment_method"],
-            "description"   => $data["description"],
+            "amount"        => $amount,
+            "payment_method"=> $paymentMethod,
+            "description"   => $description,
         ];
 
         return $this->receivablePaymentRepository->updateReceivablePayment($receivablePayment, $receivablePaymentData);

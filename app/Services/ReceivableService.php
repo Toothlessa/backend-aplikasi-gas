@@ -94,41 +94,47 @@ class ReceivableService
             $this->receivablePaymentService->autoCreateReceivablePaymentFromTransaction($receivablePaymentData);
             
             # return receivable with receivable payment
-            // return $receivable->load('receivablePayment');
             return $receivable;
         });
     }
 
-    public function autoUpdateReceivableFromTransaction($id, $data)
+    public function autoUpdateReceivableFromTransaction($transactionId, $data)
     {
-        return DB::transaction(function () use ($id, $data) {
+        return DB::transaction(function () use ($transactionId, $data) {
             # validate data existence
-            $receivable = $this->getReceivableById($id);
+            $receivable = $this->getReceivableByTransactionId($transactionId);
 
             /**
              * Transform data receivable
              * - Auto update data receivable from transaction
              */
 
-            # Calculate total amount receivable
-            $total_amount = $data['amount'] * $data['quantity'];
+            # Data
+            $customerId     = $data['customer_id'];
+            $itemId         = $data['item_id'];
+            $quantity       = $data['quantity'];
+            $price          = $data['price'];
+            $description    = $data['description'];
+            $totalAmount    = $price * $quantity;
+            $paymentMethod  = $data['payment_method'];
+            $paidAmount     = $data['paid_amount'];
 
             # Set Paid Amount
             $paymentResult = $this->resolvePaymentStatus(
-                $data['payment_method'],
-                $total_amount,
-                $data['paid_amount'] ?? null
+                $paymentMethod,
+                $totalAmount,
+                $paidAmount ?? null
             );
 
             # Prepare Receivable Data
             $receivableData = [
                 "receivable_id"     => $receivable->id,
                 # Validate in this service
-                "total_amount"      => $total_amount,
+                "total_amount"      => $totalAmount,
                 # Validate in Transaction Service
-                "customer_id"       => $data["customer_id"],
+                "customer_id"       => $customerId,
                 "status"            => $paymentResult['status'],
-                "description"       => $data["description"],
+                "description"       => $description,
                 "paid_amount"       => $paymentResult['paid_amount'],
                 
                 # remaining amount handled in models
@@ -138,9 +144,9 @@ class ReceivableService
 
             $receivableItemData = [
                 "receivable_id" => $receivable->id,
-                "item_id"       => $data["item_id"],
-                "quantity"      => $data["quantity"],
-                "price"         => $data["price"],
+                "item_id"       => $itemId,
+                "quantity"      => $quantity,
+                "price"         => $price,
             ];
 
             $this->receivableItemService->autoUpdateReceivableItemFromTransaction($receivable->id, $receivableItemData);
@@ -148,14 +154,14 @@ class ReceivableService
             $receivablePaymentData = [
                 "receivable_id" => $receivable->id,
                 "amount"        => $paymentResult['paid_amount'],
-                "payment_method"=> $data["payment_method"],
-                "description"   => "Payment " . $receivable->invoice_number . " payment method " . $data["payment_method"],
+                "payment_method"=> $paymentMethod,
+                "description"   => "Payment " . $receivable->invoice_number . " payment method " . $paymentMethod,
             ];  
 
             $this->receivablePaymentService->autoUpdateReceivablePaymentFromTransaction($receivable->id, $receivablePaymentData);
             
             # return receivable with receivable payment
-            return $receivable->load('receivablePayment');
+            return $receivable;
         });
     }
 
@@ -169,6 +175,18 @@ class ReceivableService
             ], 404));
         }
 
+        return $receivable;
+    }
+
+    public function getReceivableByTransactionId($transactionId){
+
+        $receivable = $this->receivableRepository->getReceivableByTransactionId($transactionId);
+        
+        if(! $receivable) {
+            throw new HttpResponseException(response()->json([
+                'error' => 'RECEIVABLE_NOT_FOUND',
+            ], 404));
+        }
         return $receivable;
     }
 
@@ -190,7 +208,7 @@ class ReceivableService
             $nextSequence = 1;
 
             if ($lastInvoiceNumber) {
-                $lastSequence = (int) substr($lastInvoiceNumber, -4);
+                $lastSequence = (int) substr($lastInvoiceNumber->invoice_number, -4);
                 $nextSequence = $lastSequence + 1;
             }
 

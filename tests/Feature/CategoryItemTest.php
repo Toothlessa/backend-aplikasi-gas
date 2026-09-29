@@ -18,16 +18,16 @@ class CategoryItemTest extends TestCase
         $this->seed([UserSeeder::class]);
 
         $this->post('/api/categoryitems', [
-            'name' => 'Bahan Pokok',
-            'prefix' => 'BP',
+            'name' => 'Bahan Alam',
+            'prefix' => 'BA',
         ],
         [
             'Authorization' => 'test'
         ])->assertStatus(201)
         ->assertJson([
             "data" => [
-                'name' => 'Bahan Pokok',
-                'prefix' => 'BP',
+                'name' => 'Bahan Alam',
+                'prefix' => 'BA',
                 ]
             ]);
     }
@@ -37,8 +37,8 @@ class CategoryItemTest extends TestCase
         $this->testCreateSuccess();
 
         $this->post('/api/categoryitems', [
-            'name'      => 'Bahan Pokok',
-            'prefix'    => 'BP',
+            'name'      => 'Bahan Alam',
+            'prefix'    => 'BA',
         ],
         [
             'Authorization' => 'test'
@@ -68,14 +68,14 @@ class CategoryItemTest extends TestCase
     {
         $this->testCreateSuccess();
 
-        $categoryItem = CategoryItem::query()->first();
+        $categoryItem = CategoryItem::where('name', 'Bahan Alam')->first();
         $this->get('/api/categoryitems/'.$categoryItem->id,
         [
             'Authorization' => 'test'
         ])->assertStatus(200)
         ->assertJson([
                 "data" => [
-                    'name' => 'Bahan Pokok',
+                    'name' => 'Bahan Alam',
                 ]
             ]);
     }
@@ -98,7 +98,7 @@ class CategoryItemTest extends TestCase
 
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
 
-        $response = $this->get('/api/categoryitems',
+        $response = $this->get('/api/categoryitems/all',
         [
             'Authorization' => 'test'
         ])->assertStatus(200)

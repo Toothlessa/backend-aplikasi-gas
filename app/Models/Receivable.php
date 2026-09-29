@@ -47,6 +47,10 @@ class Receivable extends Model
         return $this->hasMany(ReceivablePayment::class, "receivable_id", "id");
     }
 
+    public function receivableItems() {
+        return $this->hasMany(ReceivableItem::class, "receivable_id", "id");
+    }
+
     #boot function
     protected static function booted()
     {

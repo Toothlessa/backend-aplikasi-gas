@@ -18,6 +18,7 @@ class TransactionOutstandingResource extends JsonResource
             'id' => $this->id,
             'customer_id' => $this->customer_id,
             'stock_id' => $this->stock_id,
+            'item_id' => $this->item_id,
             'customer_name' => $this->customer->customer_name,
             'item_name' => $this->masterItem->item_name,
             'description' => $this->description,
@@ -28,3 +29,4 @@ class TransactionOutstandingResource extends JsonResource
         ];
     }
 }
+

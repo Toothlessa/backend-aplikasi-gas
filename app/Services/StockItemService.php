@@ -51,7 +51,7 @@ class StockItemService
             'stock'         => $qtyStock,
             'cogs'          => $cogs,
             'selling_price' => $sellingPrice,
-            'prev_stock_id' => $lastStock->id,
+            'prev_stock_id' => $lastStock->id ?? null,
         ];
 
         return $this->repository->create($stockData);

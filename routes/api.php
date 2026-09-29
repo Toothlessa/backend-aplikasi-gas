@@ -38,6 +38,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     Route::prefix('customers')->controller(CustomerController::class)->group(function () {
         Route::post('/', 'create');
         Route::get('/', 'search');
+        Route::get('/all', 'getAll');
         Route::get('{id}', 'get')->whereNumber('id');
         Route::put('{id}', 'update')->whereNumber('id');
         Route::delete('{id}', 'delete')->whereNumber('id');
@@ -52,7 +53,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('masteritems')->controller(MasterItemController::class)->group(function () {
-        Route::get('/', 'getAll');
+        Route::get('/all', 'getAll');
         Route::post('/', 'create');
         Route::get('{id}', 'findById')->whereNumber('id');
         Route::put('{id}', 'update')->whereNumber('id');
@@ -71,7 +72,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
         Route::post('{itemId}', 'createNewStock')->whereNumber('id');
         Route::put('{id}', 'updateStock')->whereNumber('id');
 
-        Route::get('current/{itemId?}', 'getCurrentStock');
+        Route::get('current', 'getCurrentStock');
         Route::get('detail/{itemId}', 'getDetailStock')->whereNumber('itemId');
         Route::get('display/{filledGasId}/{emptyGasId}', 'getDisplayStock')
             ->whereNumber('filledGasId')
@@ -84,8 +85,8 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('transactions')->controller(TransactionController::class)->group(function () {
-        Route::post('/', 'createTransaction');
-        Route::patch('{id}', 'updateTransaction')->whereNumber('id');
+        Route::post('/', 'autoCreateTransaction');
+        Route::patch('{id}', 'autoUpdateTransaction')->whereNumber('id');
 
         Route::get('date/{date?}', 'getTransactionByDate')->defaults('date', Carbon::today());
         Route::get('outstanding', 'getOutstandingTransaction');
@@ -115,7 +116,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     */
     Route::prefix('assetowners')->controller(AssetOwnerController::class)->group(function () {
         Route::post('/', 'create');
-        Route::get('/', 'getAll');
+        Route::get('/all', 'getAll');
         Route::get('{id}', 'find')->whereNumber('id');
         Route::patch('{id}', 'update')->whereNumber('id');
         Route::patch('{id}/inactive', 'inactiveOwner')->whereNumber('id');
@@ -143,7 +144,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     */
     Route::prefix('categoryitems')->controller(CategoryItemController::class)->group(function () {
         Route::post('/', 'create');
-        Route::get('/', 'getAll');
+        Route::get('/all', 'getAll');
         Route::get('active', 'getActiveCategoryItems');
         Route::get('{id}', 'get')->whereNumber('id');
         Route::patch('{id}', 'update')->whereNumber('id');

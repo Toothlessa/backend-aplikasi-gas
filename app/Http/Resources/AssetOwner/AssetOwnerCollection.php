@@ -5,7 +5,7 @@ namespace App\Http\Resources\AssetOwner;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class AssetOwnerCOllection extends ResourceCollection
+class AssetOwnerCollection extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
