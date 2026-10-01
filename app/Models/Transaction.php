@@ -11,6 +11,7 @@ class Transaction extends Model
 {
     # Call the boot function created by from Blameable trait
     use Blameable;
+
     protected $table = "transactions";
     protected $primaryKey = "id";
     protected $keyType = "int";

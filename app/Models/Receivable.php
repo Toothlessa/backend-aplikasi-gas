@@ -11,7 +11,7 @@ class Receivable extends Model
 {
     # Call the boot function created by from Blameable trait
     use Blameable;
-    
+
     # Table Specification
     protected $table = "receivables";
     protected $primaryKey = "id";

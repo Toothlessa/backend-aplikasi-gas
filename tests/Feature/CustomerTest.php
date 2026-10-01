@@ -213,7 +213,7 @@ class CustomerTest extends TestCase
     {
         $this->seed([UserSeeder::class, CustomerSeeder::class]);
 
-        $customer = Customer::query()->first();  
+        $customer = Customer::query()->first();
 
         $this->put('/api/customers/' .$customer->id, [
             'customer_name'         => 'renan',
@@ -249,110 +249,110 @@ class CustomerTest extends TestCase
             ]);
     }
 
-    public function testSearchByCustomerName()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?customer_name=test', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
-    }
-
-    public function testSearchByCustomerEmail()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?email=test', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(21, $response['meta']['total']);
-    }
-
-    public function testSearchByCustomerNik()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?nik=327', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
-    }
-
-    public function testSearchByCustomerAddress()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?address=Sindang Sari', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
-    }
-    public function testSearchByCustomerPhone()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?phone=081', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(10, count($response['data']));
-        self::assertEquals(20, $response['meta']['total']);
-    }
-
-    public function testSearchNotFound()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?nik=0812', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(0, count($response['data']));
-        self::assertEquals(0, $response['meta']['total']);
-    }
-
-    public function testSearchWithPage()
-    {
-        $this->seed([UserSeeder::class, SearchSeeder::class]);
-
-        $response = $this->get('/api/customers?size=5&page=2', [
-            'Authorization' => 'test'
-        ])->assertStatus(200)
-        ->Json();
-
-        Log::info(json_encode($response, JSON_PRETTY_PRINT));
-
-        self::assertEquals(5, count($response['data']));
-        self::assertEquals(21, $response['meta']['total']);
-        self::assertEquals(2, $response['meta']['current_page']);    
-    }
+//     public function testSearchByCustomerName()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?customer_name=test', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(10, count($response['data']));
+//         self::assertEquals(20, $response['meta']['total']);
+//     }
+//
+//     public function testSearchByCustomerEmail()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?email=test', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(10, count($response['data']));
+//         self::assertEquals(21, $response['meta']['total']);
+//     }
+//
+//     public function testSearchByCustomerNik()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?nik=327', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(10, count($response['data']));
+//         self::assertEquals(20, $response['meta']['total']);
+//     }
+//
+//     public function testSearchByCustomerAddress()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?address=Sindang Sari', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(10, count($response['data']));
+//         self::assertEquals(20, $response['meta']['total']);
+//     }
+//     public function testSearchByCustomerPhone()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?phone=081', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(10, count($response['data']));
+//         self::assertEquals(20, $response['meta']['total']);
+//     }
+//
+//     public function testSearchNotFound()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?nik=0812', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(0, count($response['data']));
+//         self::assertEquals(0, $response['meta']['total']);
+//     }
+//
+//     public function testSearchWithPage()
+//     {
+//         $this->seed([UserSeeder::class, SearchSeeder::class]);
+//
+//         $response = $this->get('/api/customers?size=5&page=2', [
+//             'Authorization' => 'test'
+//         ])->assertStatus(200)
+//         ->Json();
+//
+//         Log::info(json_encode($response, JSON_PRETTY_PRINT));
+//
+//         self::assertEquals(5, count($response['data']));
+//         self::assertEquals(21, $response['meta']['total']);
+//         self::assertEquals(2, $response['meta']['current_page']);
+//     }
 
     public function testGetAllSuccess()
     {

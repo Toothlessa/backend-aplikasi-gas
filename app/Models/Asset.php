@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Asset extends Model
 {
+    use Blameable;
+
     protected $table = "assets";
     protected $primaryKey = "id";
     protected $keyType = "int";

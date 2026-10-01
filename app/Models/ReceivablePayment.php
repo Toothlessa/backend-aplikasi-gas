@@ -10,6 +10,7 @@ class ReceivablePayment extends Model
 {
     #traits call created by and updated by function
     use Blameable;
+
     protected $table = "receivable_payments";
     protected $primaryKey = "id";
     protected $keyType = "int";

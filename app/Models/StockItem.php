@@ -10,6 +10,7 @@ class StockItem extends Model
 {
     # Call the boot function created by from Blameable trait
     use Blameable;
+
     protected $table = "stock_items";
     protected $primaryKey = "id";
     protected $keyType = "int";

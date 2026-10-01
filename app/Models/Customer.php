@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Customer extends Model
 {
+    use Blameable;
+
     protected $table = "customers";
     protected $primaryKey = "id";
     protected $keyType = "int";

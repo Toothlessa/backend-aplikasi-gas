@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CategoryItem extends Model
 {
+    use Blameable;
+
     protected $table = "category_items";
     protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
     public $incrementing = true;
- 
+
     protected $fillable = [
         'name',
         'active_flag',

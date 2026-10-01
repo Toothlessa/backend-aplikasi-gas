@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Model implements Authenticatable
 {
+    use HasFactory;
+    use Blameable;
+
     protected $table = "users";
     protected $primaryKey = "id";
     protected $keyType = "int";

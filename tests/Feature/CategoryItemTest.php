@@ -53,8 +53,8 @@ class CategoryItemTest extends TestCase
         $this->testCreateSuccess();
 
         $this->post('/api/categoryitems', [
-            'name'      => 'Bahan Peralatan',
-            'prefix'    => 'BP',
+            'name'      => 'Bahan Ayam Goreng',
+            'prefix'    => 'BA',
         ],
         [
             'Authorization' => 'test'
@@ -81,7 +81,7 @@ class CategoryItemTest extends TestCase
     }
 
     public function testGetCategoryNotFound(){
-        
+
         $this->testCreateSuccess();
 
         $categoryItem = CategoryItem::query()->first();
@@ -139,12 +139,12 @@ class CategoryItemTest extends TestCase
             ]);
     }
 
-    
+
     //this function is inactive
     public function testDeleteFailed() {
         $this->seed([UserSeeder::class, CategoryItemSeeder::class, MasterItemSeeder::class]);
         $categoryItem = CategoryItem::query()->first();
-        $this->delete('/api/categoryitems/'.$categoryItem->id, [], 
+        $this->delete('/api/categoryitems/'.$categoryItem->id, [],
         [
             'Authorization' => 'test'
         ])->assertStatus(400)
@@ -170,7 +170,7 @@ class CategoryItemTest extends TestCase
         $this->seed([UserSeeder::class, CategoryItemSeeder::class]);
 
         $categoryItem = CategoryItem::query()->first();
-        $this->patch("/api/categoryitems/{$categoryItem->id}/inactive", [], 
+        $this->patch("/api/categoryitems/{$categoryItem->id}/inactive", [],
         [
             'Authorization' => 'test'
         ])->assertStatus(200)

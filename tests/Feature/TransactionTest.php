@@ -20,13 +20,13 @@ class TransactionTest extends TestCase
     public function testCreateSuccess()
     {
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
-        
+
         $masterItem = MasterItem::query()->first();
         $customer   = Customer::query()->first();
 
@@ -83,10 +83,10 @@ class TransactionTest extends TestCase
 
     public function testCreateTransactionPartialPayment(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -147,13 +147,13 @@ class TransactionTest extends TestCase
     public function testCreateSuccessNewTransaction()
     {
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
-        
+
         $masterItem = MasterItem::query()->first();
         $customer   = Customer::query()->first();
 
@@ -209,10 +209,10 @@ class TransactionTest extends TestCase
 
     public function testCreateQuantityMinus(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -236,7 +236,7 @@ class TransactionTest extends TestCase
         )
         ->assertStatus(400)
         ->assertJson([
-            'errors' => [ 
+            'errors' => [
                 'quantity' => [
                     'The quantity field must be at least 1.'
                 ]
@@ -246,13 +246,13 @@ class TransactionTest extends TestCase
 
     public function testCreateAmountMinus(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
-        
+
         $masterItem = MasterItem::query()->first();
         $customer = Customer::query()->first();
 
@@ -273,7 +273,7 @@ class TransactionTest extends TestCase
         )
         ->assertStatus(400)
         ->assertJson([
-            'errors' => [ 
+            'errors' => [
                 'amount' => [
                     'The amount field must be at least 0.'
                 ]
@@ -283,10 +283,10 @@ class TransactionTest extends TestCase
 
     public function testCreateUnauthorized(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -320,10 +320,10 @@ class TransactionTest extends TestCase
 
     public function testCreateMissingRequiredFields(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -361,10 +361,10 @@ class TransactionTest extends TestCase
 
     public function testCreateInvalidPaymentMethod(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -398,10 +398,10 @@ class TransactionTest extends TestCase
 
     public function testCreateDescriptionExceedsMaxLength(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -435,10 +435,10 @@ class TransactionTest extends TestCase
 
     public function testCreateQuantityZero(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -472,10 +472,10 @@ class TransactionTest extends TestCase
 
     public function testCreatePaidAmountZero(){
         $this->seed([
-                    UserSeeder::class, 
-                    CategoryItemSeeder::class, 
-                    MasterItemSeeder::class, 
-                    StockItemSeeder::class, 
+                    UserSeeder::class,
+                    CategoryItemSeeder::class,
+                    MasterItemSeeder::class,
+                    StockItemSeeder::class,
                     CustomerSeeder::class
                 ]);
 
@@ -567,19 +567,19 @@ class TransactionTest extends TestCase
     // public function testUpdateSuccess()
     // {
     //     // [
-    //     //     'transaction' => $transaction, 
-    //     //     'customer'    => $customer, 
+    //     //     'transaction' => $transaction,
+    //     //     'customer'    => $customer,
     //     //     'masterItem'  => $masterItem
     //     // ] = $this->seedAndCreateTransaction();
     //     $this->seed([
-    //                 UserSeeder::class, 
-    //                 CategoryItemSeeder::class, 
-    //                 MasterItemSeeder::class, 
-    //                 StockItemSeeder::class, 
+    //                 UserSeeder::class,
+    //                 CategoryItemSeeder::class,
+    //                 MasterItemSeeder::class,
+    //                 StockItemSeeder::class,
     //                 CustomerSeeder::class,
     //                 TransactionSeeder::class,
     //             ]);
-        
+
     //     $masterItem   = MasterItem::query()->first();
     //     $customer     = Customer::query()->first();
     //     $transaction  = Transaction::query()->first();
@@ -984,14 +984,14 @@ class TransactionTest extends TestCase
     public function testgetTodayTransaction()
     {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
-            MasterItemSeeder::class, 
-            CustomerSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
+            MasterItemSeeder::class,
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
 
-        $response = $this->get('/api/transactions/date/', 
+        $response = $this->get('/api/transactions/date/',
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -1003,10 +1003,10 @@ class TransactionTest extends TestCase
     public function testgetTomorrowTransaction()
     {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
             MasterItemSeeder::class,
-            CustomerSeeder::class, 
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
 
@@ -1025,16 +1025,16 @@ class TransactionTest extends TestCase
     public function testgetYesterdayTransaction()
     {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
             MasterItemSeeder::class,
-            CustomerSeeder::class, 
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
 
          $date = Carbon::yesterday()->toDateString(); // YYYY-MM-DD
 
-        $response = 
+        $response =
             $this->get('/api/transactions/date/'.$date,[
                 'Authorization' => 'test'
             ])->assertStatus(status: 200)
@@ -1042,19 +1042,19 @@ class TransactionTest extends TestCase
 
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
-    
+
     public function testGetOutsandingTransaction()
     {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
             MasterItemSeeder::class,
-            CustomerSeeder::class, 
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
         //2025-01-22 00:00:00
 
-        $response = $this->get('/api/transactions/outstanding', 
+        $response = $this->get('/api/transactions/outstanding',
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -1065,10 +1065,10 @@ class TransactionTest extends TestCase
 
     public function testGetDailySale() {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
-            MasterItemSeeder::class, 
-            CustomerSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
+            MasterItemSeeder::class,
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
 
@@ -1083,10 +1083,10 @@ class TransactionTest extends TestCase
 
     public function testGetTopCustomer() {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
-            MasterItemSeeder::class, 
-            CustomerSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
+            MasterItemSeeder::class,
+            CustomerSeeder::class,
             TransactionSeeder::class,
         ]);
 
@@ -1106,8 +1106,8 @@ class TransactionTest extends TestCase
         $customer = $transaction->customer;
 
         self::assertNotNull($customer);
-        self::assertEquals("Umum", $customer->customer_name);
-        self::assertEquals("000", $customer->nik);
+        self::assertEquals("test", $customer->customer_name);
+        self::assertEquals("3271981923812912", $customer->nik);
     }
 
     /**
@@ -1140,7 +1140,7 @@ class TransactionTest extends TestCase
     //     $mockService->shouldReceive('updateTransaction')
     //         ->once() // memastikan service dipanggil tepat satu kali
     //         ->with($transaction->id, \Mockery::on(function ($arg) use ($payload) {
-    //             return $arg['quantity'] === $payload['quantity'] && 
+    //             return $arg['quantity'] === $payload['quantity'] &&
     //                    $arg['description'] === $payload['description'];
     //         }))
     //         ->andReturn($transaction);

@@ -10,6 +10,7 @@ class ReceivableItem extends Model
 {
     #call created by and updated by
     use Blameable;
+
     protected $table = "receivable_items";
     protected $primaryKey = "id";
     protected $keyType = "int";

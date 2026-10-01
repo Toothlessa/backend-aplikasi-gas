@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Blameable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssetOwner extends Model
 {
+    use Blameable;
+
     protected $table = "asset_owners";
     protected $primaryKey = "id";
     protected $keyType = "int";

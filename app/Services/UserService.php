@@ -77,7 +77,7 @@ class UserService
     public function login($data)
     {
         $user = $this->repository->findUserByEmail($data['email']);
-        
+
         if(!$user || !$this->repository->hashCheckPassword($data['password'], $user->password)) {
             throw new HttpResponseException(response()->json([
                 'error' => 'EMAIL_PASSWORD_WRONG',
@@ -134,7 +134,7 @@ class UserService
             throw new HttpResponseException(response()->json([
                 'error' => 'PHONE_EXISTS',
             ])->setStatusCode(400));
-        } 
+        }
 
         return true;
     }
