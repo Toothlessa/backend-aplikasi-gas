@@ -14,7 +14,7 @@ class AssetOwnerResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'active_flag' => $this->active_flag,
-            'inactive_date' => $this->inactive_date,
+            'inactive_date' => $this->inactive_date?->format('Y-m-d H:i:s'),
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
             'created_at' => $this->created_at?->format('d M Y H:i'),
