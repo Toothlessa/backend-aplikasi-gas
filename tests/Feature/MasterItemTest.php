@@ -20,8 +20,8 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $payload = [
-            'item_name'          => 'Gas LPG 3 Kg',
-            'item_type'          => 'ASSET',
+            'item_name'          => 'GAS LPG 3KG ISI',
+            'item_type'          => 'ITEM',
             'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
             'selling_price'      => 19000,
@@ -33,8 +33,8 @@ class MasterItemTest extends TestCase
                     ->assertStatus(201)
                     ->assertJson([
                         "data" => [
-                            'item_name'          => 'Gas LPG 3 Kg',
-                            'item_type'          => 'ASSET',
+                            'item_name'          => 'GAS LPG 3KG ISI',
+                            'item_type'          => 'ITEM',
                             'category_id'        => $category->id,
                             'cost_of_goods_sold' => 16000,
                             'selling_price'      => 19000,
@@ -98,7 +98,7 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->post('/api/masteritems', [
-            'item_name'          => 'Gas LPG 3 Kg',
+            'item_name'          => 'GAS LPG 3KG ISI',
             'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
             'selling_price'      => 19000,
@@ -117,7 +117,7 @@ class MasterItemTest extends TestCase
         $category = CategoryItem::query()->first();
 
         $this->post('/api/masteritems', [
-            'item_name'          => 'Gas LPG 3 Kg',
+            'item_name'          => 'GAS LPG 3KG ISI',
             'category_id'        => $category->id,
             'cost_of_goods_sold' => 16000,
             'selling_price'      => 19000,
@@ -149,7 +149,7 @@ class MasterItemTest extends TestCase
         ])->assertStatus(200)
         ->assertJson([
            'data' => [
-                'item_name'          => 'GAS LPG 3KG',
+                'item_name'          => 'GAS LPG 3KG ISI',
                 'cost_of_goods_sold' => 5000,
                 'selling_price'      => 10000,
                 ]
@@ -321,6 +321,21 @@ class MasterItemTest extends TestCase
         Log::info(json_encode($response, JSON_PRETTY_PRINT));
     }
 
+    public function testGetItemGasIsiSuccess() {
+        $this->testCreateSuccess();
+
+        $this->get('/api/masteritems/itemGasIsi',
+        [
+            'Authorization' => 'test'
+        ])->assertStatus(200)
+        ->assertJson([
+            'data' => [
+                'item_name'     => 'GAS LPG 3KG ISI',
+                'cost_of_goods_sold' => 16000,
+                'selling_price'      => 19000,
+            ]
+        ]);
+    }
 
     public function testInactiveItem()
     {

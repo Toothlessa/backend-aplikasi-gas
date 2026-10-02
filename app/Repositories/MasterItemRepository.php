@@ -24,7 +24,7 @@ class MasterItemRepository
 
     public function findById(int $itemId)
     {
-        return MasterItem::find($itemId); 
+        return MasterItem::find($itemId);
     }
 
     public function getAll()
@@ -45,9 +45,9 @@ class MasterItemRepository
         return MasterItem::where('active_flag', $flagStatus)->get();
     }
 
-    public function getMItemByItemName($itemName)
+    public function getMItemGasIsi()
     {
-        return MasterItem::whereRaw("upper(item_name) = 'GAS LPG 3KG ISI'")->first();
+        return MasterItem::where('item_name', 'GAS LPG 3KG ISI' )->first();
     }
 
     public function getLastSequenceByCategoryId($categoryId)
@@ -60,7 +60,7 @@ class MasterItemRepository
     public function validateMasterItemExists(string $itemName)
     {
         return MasterItem::where('item_name', $itemName)->exists();
-    } 
+    }
 
     public function validateItemCodeExists($itemCode)
     {

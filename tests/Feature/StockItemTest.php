@@ -15,14 +15,14 @@ use Tests\TestCase;
 
 class StockItemTest extends TestCase
 {
-    
+
     public function testCreateNewStockSuccess()
     {
         $this->seed([
-            UserSeeder::class, 
-            CategoryItemSeeder::class, 
+            UserSeeder::class,
+            CategoryItemSeeder::class,
             MasterItemSeeder::class]);
-        
+
         $masterItem = MasterItem::query()->first();
 
         $this->post('/api/stockitems/' .($masterItem->id), [
@@ -67,8 +67,8 @@ class StockItemTest extends TestCase
         $masterItem = MasterItem::query()->first();
         $stockInput = StockItem::where('item_id', $masterItem->id)->first();
 
-        $this->put('/api/stockitems/' .$stockInput->id, 
-        [ 
+        $this->put('/api/stockitems/' .$stockInput->id,
+        [
             'stock'     => '560',
             'item_id'   => $masterItem->id,
         ],
@@ -88,7 +88,7 @@ class StockItemTest extends TestCase
         $this->testCreateNewStockSuccess();
 
         $masterItem = MasterItem::query()->first();
-        $response = $this->get('api/stockitems/current', 
+        $response = $this->get('api/stockitems/current',
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -116,7 +116,7 @@ class StockItemTest extends TestCase
         $this->testCreateNewStockSuccess();
         $masterItem = MasterItem::query()->first();
 
-        $response = $this->get('api/stockitems/detail/'.$masterItem->id, 
+        $response = $this->get('api/stockitems/detail/'.$masterItem->id,
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)
@@ -129,7 +129,7 @@ class StockItemTest extends TestCase
         $this->testCreateNewStockSuccess();
         $stock = StockItem::query()->orderByDesc('id')->first();
 
-        $this->get('api/stockitems/detail/'.$stock->id+100, 
+        $this->get('api/stockitems/detail/'.$stock->id+100,
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 404)
@@ -140,14 +140,14 @@ class StockItemTest extends TestCase
 
     public function testGetDisplayStock() {
 
-        $this->seed([UserSeeder::class, CategoryItemSeeder::class,  AssetOwnerSeeder::class, 
+        $this->seed([UserSeeder::class, CategoryItemSeeder::class,  AssetOwnerSeeder::class,
                             MasterItemSeeder::class, StockItemSeeder::class, AssetSeeder::class]);
-        
-        $filledGas = MasterItem::where('item_name', 'GAS LPG 3KG')->first();
+
+        $filledGas = MasterItem::where('item_name', 'GAS LPG 3KG ISI')->first();
 
         $emptyGas  = MasterItem::where('item_name', 'GAS LPG 3KG KOSONG')->first();
 
-        $response = $this->get('api/stockitems/display/'.$filledGas->id.'/'.$emptyGas->id, 
+        $response = $this->get('api/stockitems/display/'.$filledGas->id.'/'.$emptyGas->id,
         [
             'Authorization' => 'test'
         ])->assertStatus(status: 200)

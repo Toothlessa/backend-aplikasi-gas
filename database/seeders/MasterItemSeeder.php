@@ -16,7 +16,7 @@ class MasterItemSeeder extends Seeder
         $category = CategoryItem::query()->first();
 
         MasterItem::create([
-            'item_name' => 'GAS LPG 3KG',
+            'item_name' => 'GAS LPG 3KG ISI',
             'item_type' => 'ITEM',
             'item_code' => 'BP001',
             'category_id' => $category->id,

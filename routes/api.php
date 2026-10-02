@@ -60,6 +60,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
 
         Route::get('itemtype/{itemType}', 'getItemByItemType');
         Route::get('status/{flagStatus}', 'getItemByFlagStatus');
+        Route::get('itemGasIsi', 'getMItemGasIsi');
         Route::patch('{id}/inactive', 'inactiveItem')->whereNumber('id');
     });
 

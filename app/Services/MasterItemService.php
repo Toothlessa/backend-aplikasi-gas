@@ -13,7 +13,7 @@ class MasterItemService
     protected $categoryItemService;
 
      public function __construct( MasterItemRepository $repository,
-                                  CategoryItemService $categoryItemService) 
+                                  CategoryItemService $categoryItemService)
     {
         $this->repository = $repository;
         $this->categoryItemService = $categoryItemService;
@@ -73,13 +73,13 @@ class MasterItemService
     public function generateItemCode($categoryId)
     {
         $categoryItem = $this->categoryItemService->findById($categoryId);
-        
+
         if(!$categoryItem){
             throw new HttpResponseException(response()->json([
                 'errors' => 'CATEGORY_NOT_FOUND',
             ])->setStatusCode(404));
         }
-    
+
         $lastid = $this->getLastSequenceByCategoryId($categoryId);
 
         $item_code = sprintf('%s%03d', $categoryItem->prefix, $lastid + 1 );
@@ -150,6 +150,18 @@ class MasterItemService
         return $masterItem;
     }
 
+    public function getMItemGasIsi() {
+        $mItemGasIsi = $this->repository->getMItemGasIsi();
+
+        if(!$mItemGasIsi) {
+            throw new HttpResponseException(response()->json([
+                'error' => 'NO_DATA_FOUND_FOR_ITEM_GAS_ISI'
+            ])->setStatusCode(404));
+        }
+
+        return $mItemGasIsi;
+    }
+
     public function validateMasterItemExists($itemName)
     {
         $masterItem = $this->repository->validateMasterItemExists($itemName);
@@ -182,7 +194,7 @@ class MasterItemService
 
         if($masterItem->active_flag == 'Y') {
             $masterItem->active_flag = 'N';
-            $masterItem->inactive_date = Carbon::now(); 
+            $masterItem->inactive_date = Carbon::now();
         } else {
             $masterItem->active_flag = 'Y';
             $masterItem->inactive_date = NULL;

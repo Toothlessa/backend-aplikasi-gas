@@ -73,12 +73,20 @@ class MasterItemController extends Controller
         return (new MasterItemCollection($masterItem))->response()->setStatusCode(200);
     }
 
+    public function getMItemGasIsi() {
+        Auth::user();
+
+        $mItemGasIsi = $this->service->getMItemGasIsi();
+
+        return (new MasterItemResource($mItemGasIsi))->response()->setStatusCode(200);
+    }
+
     public function inactiveItem($id)
     {
         $user = Auth::user();
-        
+
         $masterItem = $this->service->inactiveItem($id, $user);
-    
+
         return (new MasterItemResource($masterItem))->response()->setStatusCode(200);
     }
 }
