@@ -24,7 +24,7 @@ class TransactionResource extends JsonResource
             'amount'     => $this->amount,
             'total'      => $this->total,
             'created_by' => $this->created_by,
-            'created_at' => $this->created_at->format('d-M-Y H:i:s'),
+            'created_at' => $this->created_at->format('H:i:s'),
 
             'customer_id' => $this->customer_id,
             'customer' => [
@@ -65,5 +65,3 @@ class TransactionResource extends JsonResource
         ];
     }
 }
-
-
