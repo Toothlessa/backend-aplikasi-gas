@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class StockItemRepository
-{   
+{
     public function create($data)
     {
         return StockItem::create($data);
@@ -45,16 +45,16 @@ class StockItemRepository
         return DB::table("stock_items")
         ->join("master_items", "stock_items.item_id", 'master_items.id')
         ->join('category_items', 'category_id', 'category_items.id')
-        ->selectRaw("stock_items.item_id, master_items.item_name, master_items.item_code, category_items.name AS category, 
+        ->selectRaw("stock_items.item_id, master_items.item_name, master_items.item_code, category_items.name AS category,
                  sum(stock) as total_stock, master_items.cost_of_goods_sold, master_items.selling_price")
-        ->groupBy("stock_items.item_id", "master_items.item_name","master_items.item_code", "category_items.name", 
+        ->groupBy("stock_items.item_id", "master_items.item_name","master_items.item_code", "category_items.name",
                 "master_items.cost_of_goods_sold", "master_items.selling_price")
         ->get();
 
     }
 
     public function getDetailStockByItem($itemId) {
-        
+
         return DB::table("stock_items")
                 ->join("master_items", "stock_items.item_id", "master_items.id")
                 ->join('category_items', 'category_id', 'category_items.id')
@@ -69,6 +69,21 @@ class StockItemRepository
     public function getStockByItemId($itemId)
     {
         return StockItem::where('item_id', $itemId)->sum('stock');
+    }
+
+    public function getFilledGasStock() {
+        return DB::table('stock_items as si')
+            ->join('master_items as mi', 'mi.id', '=', 'si.item_id')
+            ->where('mi.item_name', 'GAS LPG 3KG ISI')
+            ->sum('si.stock');
+    }
+
+    public function getFilledLpg3KgStockUntilYesterday() {
+        return DB::table('stock_items as si')
+            ->join('master_items as mi', 'mi.id', '=' ,'si.item_id')
+            ->where('mi.item_name', 'GAS LPG 3KG ISI')
+            ->whereDate('si.created_at', '<', Carbon::today())
+            ->sum('si.stock');
     }
 
     public function getStockNotToday($itemId)

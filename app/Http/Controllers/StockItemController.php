@@ -55,11 +55,11 @@ class StockItemController extends Controller
         return new StockItemGetDetailCollection($stock);
     }
 
-    public function getDisplayStock($filledGasId, $emptyGasId)
+    public function getDisplayStock()
     {
         Auth::user();
 
-        $displayStock = $this->service->getDisplayStock($filledGasId, $emptyGasId);
+        $displayStock = $this->service->getDisplayStock();
 
         return (new StockItemDisplayStockResource($displayStock)->response()->setStatusCode(200));
     }

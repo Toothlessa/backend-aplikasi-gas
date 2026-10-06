@@ -75,9 +75,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
 
         Route::get('current', 'getCurrentStock');
         Route::get('detail/{itemId}', 'getDetailStock')->whereNumber('itemId');
-        Route::get('display/{filledGasId}/{emptyGasId}', 'getDisplayStock')
-            ->whereNumber('filledGasId')
-            ->whereNumber('emptyGasId');
+        Route::get('displayStock', 'getDisplayStock');
     });
 
     /*

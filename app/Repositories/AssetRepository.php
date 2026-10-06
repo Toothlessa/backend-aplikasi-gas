@@ -6,7 +6,7 @@ use App\Models\Asset;
 use Illuminate\Support\Facades\DB;
 
 class AssetRepository
-{   
+{
     public function create($data): Asset
     {
         return Asset::create($data);
@@ -34,11 +34,11 @@ class AssetRepository
     return DB::table('assets')
             ->join('asset_owners', 'asset_owners.id', 'assets.owner_id')
             ->join('master_items', 'assets.item_id', 'master_items.id')
-            ->selectRaw('assets.owner_id, asset_owners.name, assets.item_id, master_items.item_name, 
+            ->selectRaw('assets.owner_id, asset_owners.name, assets.item_id, master_items.item_name,
                         SUM(assets.quantity) AS quantity, SUM(assets.cogs) AS cogs, SUM(assets.selling_price) AS selling_price')
             ->groupByRaw('assets.owner_id, asset_owners.name, assets.item_id')
             ->get();
-    
+
     }
 
     public function getDetailAsset($ownerId, $itemId)
@@ -61,5 +61,11 @@ class AssetRepository
         return Asset::where('item_id', $itemId)->sum('quantity');
     }
 
-}
+    public function getEmptyGasStock() {
+        return DB::table('assets as ass')
+            ->join('master_items as mi', 'mi.id', '=', 'ass.item_id')
+            ->where('mi.item_name', 'GAS LPG 3KG KOSONG')
+            ->sum('quantity');
+    }
 
+}

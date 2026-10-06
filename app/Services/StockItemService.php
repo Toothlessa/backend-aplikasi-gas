@@ -35,8 +35,8 @@ class StockItemService
         return $this->repository->create($stockData);
     }
 
-    public function autoStockFromTransaction($itemId, 
-                                             $qtyStock, 
+    public function autoStockFromTransaction($itemId,
+                                             $qtyStock,
                                              $sellingPrice,
                                              $cogs) {
 
@@ -63,7 +63,7 @@ class StockItemService
         $this->masterItemService->findById($data['item_id']);
 
         $stockData = $this->findById($id);
-        
+
         return $this->repository->update($stockData, $data);
     }
 
@@ -94,6 +94,26 @@ class StockItemService
     public function getStockByItemId(int $itemId)
     {
         $stockItem = $this->repository->getStockByItemId($itemId);
+
+        if(!$stockItem) {
+            return 0;
+        }
+
+        return $stockItem;
+    }
+
+    public function getFilledGasStock() {
+       $stockItem = $this->repository->getFilledGasStock();
+
+       if(!$stockItem) {
+           return 0;
+       }
+
+       return $stockItem;
+    }
+
+    public function getFilledLpg3KgStockUntilYesterday() {
+        $stockItem = $this->repository->getFilledLpg3KgStockUntilYesterday();
 
         if(!$stockItem) {
             return 0;
@@ -139,18 +159,11 @@ class StockItemService
         return $stockItem;
     }
 
-    public function getDisplayStock(int $filledGasId, int $emptyGasId): array{
-        // Current running stock (gas terisi yang sedang beredar)
-        $runningStock = (int) $this->getStockByItemId($filledGasId);
-
-        // Total gas owned (aset tabung kosong)
-        $ownedGas = (int) $this->assetService->getSummaryAssetByItemId($emptyGasId);
-
-        // Stock snapshot sebelum hari ini
-        $yesterdayStock = (int) $this->getStockNotToday($filledGasId);
-
-        // Gas kosong = total tabung - yang sedang terisi
-        $emptyGas = max($ownedGas - $runningStock, 0);
+    public function getDisplayStock(): array {
+        $runningStock   = (int) $this->getFilledGasStock();
+        $ownedGas       = (int) $this->assetService->getEmptyGasStock();
+        $yesterdayStock = (int) $this->getFilledLpg3KgStockUntilYesterday();
+        $emptyGas       = max($ownedGas - $runningStock, 0);
 
         return [
             'running_stock'   => $runningStock,
@@ -159,4 +172,5 @@ class StockItemService
             'gas_owned'       => $ownedGas,
         ];
     }
+
 }

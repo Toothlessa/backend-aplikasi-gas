@@ -13,10 +13,10 @@ class AssetService
     protected $assetOwnerService;
     protected $masterItemService;
 
-    public function __construct(    AssetRepository $repository, 
+    public function __construct(    AssetRepository $repository,
                                     AssetOwnerService $assetOwnerService,
                                     MasterItemService $masterItemService
-                                 ) 
+                                 )
     {
         $this->repository = $repository;
         $this->assetOwnerService = $assetOwnerService;
@@ -49,7 +49,7 @@ class AssetService
         $asset      = $this->findById($id);
         $assetOwner = $this->assetOwnerService->findById($data["owner_id"]);
         $masterItem = $this->masterItemService->findById($data['item_id']);
-        
+
         $newAsset = [
             # Frontend Input
             'quantity'          => $data['quantity'],
@@ -117,5 +117,15 @@ class AssetService
         }
 
         return $summaryAssetByItemId;
+    }
+
+    public function getEmptyGasStock() {
+        $asset = $this->repository->getEmptyGasStock();
+
+        if($asset) {
+            return 0;
+        }
+
+        return $asset;
     }
 }
