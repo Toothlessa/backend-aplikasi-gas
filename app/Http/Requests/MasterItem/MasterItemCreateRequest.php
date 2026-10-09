@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests\MasterItem;
 
+use App\Enums\ItemType;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+
 
 class MasterItemCreateRequest extends FormRequest
 {
@@ -26,7 +29,15 @@ class MasterItemCreateRequest extends FormRequest
         return [
             'item_name'          => ['required', 'max:100'],
             'item_code'          => ['nullable','max:100'],
-            'item_type'          => [ 'max:50'],
+            'item_type' => [
+                'required',
+                Rule::enum(ItemType::class),
+            ],
+            'owner_id' => [
+                'nullable',
+                'exists:owners,id',
+                'required_if:item_type,' . ItemType::ASSET->value,
+            ],
             'category_id'        => ['required'],
             'cost_of_goods_sold' => ['required'],
             'selling_price'      => ['required'],

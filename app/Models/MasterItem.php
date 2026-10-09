@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\Blameable;
+use App\Enums\ItemType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -63,6 +64,13 @@ class MasterItem extends Model
     public function getSellingPricePerUnitAttribute(): float
     {
         return $this->quantity ? $this->selling_price / $this->quantity : 0;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'item_type' => ItemType::class,
+        ];
     }
 
 }

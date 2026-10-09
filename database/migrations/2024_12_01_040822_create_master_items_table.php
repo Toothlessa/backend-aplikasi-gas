@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string("item_name", 100)->nullable(false)->unique("item_name_unique");
             $table->string("item_code", 50)->nullable(false)->unique("item_code_unique");
             $table->string("item_type", 50)->nullable(false);
-            $table->foreignId('owner_id')->constrained('asset_owners');
+            $table->foreignId('owner_id')->nullable()->constrained('asset_owners');
             $table->foreignId("category_id")->constrained("category_items");
             $table->integer("cost_of_goods_sold")->nullable(false);
             $table->integer("selling_price")->nullable(false);
