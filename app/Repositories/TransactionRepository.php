@@ -20,7 +20,7 @@ class TransactionRepository
         $transaction->save();
         return $transaction;
     }
-    
+
     public function findById(int $id): ?Transaction
     {
         return Transaction::find($id);
@@ -49,7 +49,7 @@ class TransactionRepository
     public function getDailySalePerMonth()
     {
         return Transaction::selectRaw("DATE_FORMAT(created_at, '%Y-%m') AS month,
-                                     DATE_FORMAT(created_at, '%d') AS day,  
+                                     DATE_FORMAT(created_at, '%d') AS day,
                                      sum(quantity) as total")
                 ->where("created_at", ">=", Carbon::now()->subDays(30))
                 ->orderByDesc("created_at")
@@ -88,14 +88,14 @@ class TransactionRepository
             ->orderBy('customer_id')
             ->orderBy('created_at')
             ->get([
-                'id', 
-                'stock_id', 
-                'customer_id', 
-                'item_id', 
-                'description', 
-                'quantity', 
-                'amount', 
-                'total', 
+                'id',
+                'stock_id',
+                'customer_id',
+                'item_id',
+                'description',
+                'quantity',
+                'amount',
+                'total',
                 'created_at'
             ]);
     }

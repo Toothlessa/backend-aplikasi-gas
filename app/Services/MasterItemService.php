@@ -152,6 +152,18 @@ class MasterItemService
         return $masterItem;
     }
 
+    public function getMItemGas() {
+        $mItemGas = $this->repository->getMItemGas();
+
+        if(!$mItemGas) {
+            throw new HttpResponseException(response()->json([
+                'error' => 'NO_DATA_FOUND_FOR_ITEM_GAS'
+            ])->setStatusCode(404));
+        }
+
+        return $mItemGas;
+    }
+
     public function getMItemGasIsi() {
         $mItemGasIsi = $this->repository->getMItemGasIsi();
 

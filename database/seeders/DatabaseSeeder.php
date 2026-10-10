@@ -8,7 +8,8 @@ use Database\Seeders\Master\CustomerFixedSeeder;
 use Database\Seeders\Master\CategoryItemFixedSeeder;
 use Database\Seeders\Master\MasterItemFixedSeeder;
 use Database\Seeders\Master\AssetOwnerFixedSeeder;
-
+use Database\Seeders\Master\StockItemFixedSeeder;
+use Database\Seeders\Master\TransactionFixedSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,6 +24,8 @@ class DatabaseSeeder extends Seeder
             CategoryItemFixedSeeder::class,
             AssetOwnerFixedSeeder::class,
             MasterItemFixedSeeder::class,
+            StockItemFixedSeeder::class,
+            TransactionFixedSeeder::class,
         ]);
     }
 }

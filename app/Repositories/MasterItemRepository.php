@@ -45,6 +45,10 @@ class MasterItemRepository
         return MasterItem::where('active_flag', $flagStatus)->get();
     }
 
+    public function getMItemGas() {
+        return MasterItem::whereIn('item_name', ['GAS LPG 3KG ISI', 'GAS LPG 3KG KOSONG'])->get();
+    }
+
     public function getMItemGasIsi()
     {
         return MasterItem::where('item_name', 'GAS LPG 3KG ISI' )->first();
