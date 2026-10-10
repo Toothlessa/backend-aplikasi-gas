@@ -29,4 +29,8 @@ class AssetOwner extends Model
         return $this->hasMany(Asset::class, "owner_id", "id");
     }
 
+    public function masterItem(): HasMany {
+        return $this->hasMany(MasterItem::class, 'owner_id', 'id');
+    }
+
 }

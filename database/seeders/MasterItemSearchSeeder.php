@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\CategoryItem;
 use App\Models\MasterItem;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class MasterItemSearchSeeder extends Seeder
@@ -19,6 +18,7 @@ class MasterItemSearchSeeder extends Seeder
         for ($i = 0; $i < 9; $i++) {
             MasterItem::create([
                 'item_name' => 'test ' .$i,
+                'item_type' => 'ITEM',
                 'item_code'=> 'BP0' .$i,
                 'category_id'=> $category->id,
                 'cost_of_goods_sold'=> $i. '0000',

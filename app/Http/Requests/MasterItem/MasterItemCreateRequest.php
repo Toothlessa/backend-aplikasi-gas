@@ -35,7 +35,7 @@ class MasterItemCreateRequest extends FormRequest
             ],
             'owner_id' => [
                 'nullable',
-                'exists:owners,id',
+                'exists:asset_owners,id',
                 'required_if:item_type,' . ItemType::ASSET->value,
             ],
             'category_id'        => ['required'],

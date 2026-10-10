@@ -10,7 +10,7 @@ class CategoryItemSeeder extends Seeder
 
     public function run(): void
     {
-        
+
         for($x=0; $x<5; $x++){
             CategoryItem::create([
                 'name' => 'Bahan Pokok'.$x,

@@ -24,6 +24,7 @@ class MasterItem extends Model
         'item_name',
         'item_code',
         'item_type',
+        'owner_id',
         'category_id',
         'cost_of_goods_sold',
         'selling_price',
@@ -49,6 +50,10 @@ class MasterItem extends Model
     public function categoryItem(): BelongsTo
     {
         return $this->belongsTo(CategoryItem::class, 'category_id', 'id');
+    }
+
+    public function assetOwner(): BelongsTo {
+        return $this->belongsTo(AssetOwner::class, 'owner_id', 'id');
     }
 
     public function inStock(): Attribute
